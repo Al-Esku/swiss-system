@@ -36,22 +36,43 @@ function App() {
   const endRound = (event: FormEvent) => {
       event.preventDefault();
       setStarted(false);
-      let winners: number[] = []
+      let updatedFencers: fencer[] = []
       bouts.forEach((bout) => {
-          winners.push(bout.winner)
-      })
-      let updatedFencers = fencers.map(fencer => {
-          if (winners.includes(fencer.id)) {
-              return {
-                  ...fencer,
-                  points: fencer.points + 1
+          fencers.forEach((fencer) => {
+              if (fencer.id === bout.fencer1.id || fencer.id === bout.fencer2.id) {
+                  updatedFencers.push({
+                      ...fencer,
+                      points: fencer.points + (fencer.id === bout.winner ? 1 : 0),
+                      opponents: [
+                          ...fencer.opponents,
+                          (fencer.id === bout.fencer1.id ? bout.fencer2.id : bout.fencer1.id)
+                      ]
+                  })
               }
-          } else {
-              return fencer
+          })
+      })
+      updatedFencers = updatedFencers.map((fencer) => {
+          return {
+              ...fencer,
+              strength: (() => {
+                  let sum = 0
+                  fencer.opponents.forEach((opponent) => {
+                      updatedFencers.forEach((opponentFencer) => {
+                          if (opponentFencer.id === opponent) {
+                              sum += opponentFencer.points
+                          }
+                      })
+                  })
+                  return sum
+              })()
           }
       })
       updatedFencers.sort(function (a, b) {
-          return b.points - a.points
+          if (b.points !== a.points){
+              return b.points - a.points
+          } else {
+              return b.strength - a.strength
+          }
       });
       let count = 1
       updatedFencers = updatedFencers.map(fencer => {
@@ -79,62 +100,68 @@ function App() {
   }
 
   return (
-    <>
-        <form onSubmit={(event) => {
-            event.preventDefault();
-            if (name != "") {
-                setFencers(
-                    [
-                        ...fencers,
-                        {id: nextFencerId++, name: name, seed: 0, points: 0, rank:nextFencerId}
-                    ]
-                );
-                setName("");
-            }
-        }}>
-            <input
-                type={"text"}
-                className={"border border-1 rounded m-4"}
-                value={name}
-                onChange={e => {
-                    setName(e.target.value)}
+    <div className={"grid grid-cols-2"}>
+        <div className={"m-8"}>
+            <form onSubmit={(event) => {
+                event.preventDefault();
+                if (name !== "") {
+                    setFencers(
+                        [
+                            ...fencers,
+                            {id: nextFencerId++, name: name, seed: 0, points: 0, rank: nextFencerId, opponents: [], strength:0}
+                        ]
+                    );
+                    setName("");
                 }
-            />
-            <button type={"submit"}>Add</button>
-        </form>
-
-      <table>
-          <thead>
-              <tr>
-                  <th></th>
-                  <th>Name</th>
-                  <th>Points</th>
-              </tr>
-          </thead>
-        {fencers.map(fencer => (
-            <tbody>
+            }}>
+                <input
+                    type={"text"}
+                    className={"border border-1 rounded"}
+                    value={name}
+                    onChange={e => {
+                        setName(e.target.value)}
+                    }
+                />
+                <button type={"submit"}>Add</button>
+            </form>
+            <table>
+                <thead>
                 <tr>
-                    <td>{fencer.rank}.</td>
-                    <td>{fencer.name}</td>
-                    <td>{fencer.points}</td>
+                    <th></th>
+                    <th>Name</th>
+                    <th>Points</th>
+                    <th>SoO</th>
                 </tr>
-            </tbody>
-        ))}
-      </table>
-      {started ? "" : <button onClick={randomSeed}>Start Round</button>}
-        <form id={"roundForm"} onSubmit={endRound}>
-            {bouts.map(bout => (
-                <div>
-                    <input type='radio' value={bout.fencer1.id} id={bout.fencer1.id.toString()} name={bout.id.toString()} required onClick={() => updateBout(bout.id, bout.fencer1.id)}></input>
-                    <label htmlFor={bout.fencer1.id.toString()}>{bout.fencer1.name + " "}</label>
-                    vs
-                    <label htmlFor={bout.fencer2.id.toString()}>{" " + bout.fencer2.name}</label>
-                    <input type='radio' value={bout.fencer2.id} id={bout.fencer2.id.toString()} name={bout.id.toString()} onClick={() => updateBout(bout.id, bout.fencer2.id)}></input>
-                </div>
-            ))}
-            {started ? <button type={"submit"}>End Round</button> : ""}
-        </form>
-    </>
+                </thead>
+                {fencers.map(fencer => (
+                    <tbody>
+                    <tr>
+                        <td>{fencer.rank}.</td>
+                        <td>{fencer.name}</td>
+                        <td>{fencer.points}</td>
+                        <td>{fencer.strength}</td>
+                    </tr>
+                    </tbody>
+                ))}
+            </table>
+            {started ? "" : <button onClick={randomSeed}>Start Round</button>}
+        </div>
+        <div>
+            <p className={"mt-8 font-semibold"}>Bouts</p>
+            <form id={"roundForm"} onSubmit={endRound} className={"m-2"}>
+                {bouts.map(bout => (
+                    <div>
+                        <input type='radio' value={bout.fencer1.id} id={bout.fencer1.id.toString()} name={bout.id.toString()} required onClick={() => updateBout(bout.id, bout.fencer1.id)}></input>
+                        <label htmlFor={bout.fencer1.id.toString()}>{bout.fencer1.name + " "}</label>
+                        vs
+                        <label htmlFor={bout.fencer2.id.toString()}>{" " + bout.fencer2.name}</label>
+                        <input type='radio' value={bout.fencer2.id} id={bout.fencer2.id.toString()} name={bout.id.toString()} onClick={() => updateBout(bout.id, bout.fencer2.id)}></input>
+                    </div>
+                ))}
+                {started ? <button type={"submit"}>End Round</button> : ""}
+            </form>
+        </div>
+    </div>
   );
 }
 

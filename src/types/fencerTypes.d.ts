@@ -3,7 +3,9 @@ type fencer = {
     name: string,
     seed: number,
     points: number,
-    rank: number
+    rank: number,
+    opponents: number[],
+    strength: number
 }
 
 type bout = {
