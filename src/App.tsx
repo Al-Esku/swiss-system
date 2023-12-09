@@ -25,7 +25,6 @@ function App() {
           }
       });
       newFencers.reverse();
-      setFencers(newFencers);
       let newBouts: bout[] = [];
       for (let i = 0; i < newFencers.length; i= i+2) {
           newBouts.push({id: nextBoutId++, fencer1:newFencers[i], fencer2:newFencers[i+1], winner:0})
@@ -51,6 +50,16 @@ function App() {
               return fencer
           }
       })
+      updatedFencers.sort(function (a, b) {
+          return b.points - a.points
+      });
+      let count = 1
+      updatedFencers = updatedFencers.map(fencer => {
+          return {
+              ...fencer,
+              rank: count++
+          }
+      })
       setFencers(updatedFencers)
       setBouts([])
   }
@@ -71,23 +80,47 @@ function App() {
 
   return (
     <>
-      <input
-          value={name}
-          onChange={e => setName(e.target.value)}
-      />
-      <button onClick={() => {
-        setFencers(
-            [
-                ...fencers,
-              {id: nextFencerId++, name: name, seed: 0, points: 0}
-            ]
-        );
-      }}>Add</button>
-      <ul>
+        <form onSubmit={(event) => {
+            event.preventDefault();
+            if (name != "") {
+                setFencers(
+                    [
+                        ...fencers,
+                        {id: nextFencerId++, name: name, seed: 0, points: 0, rank:nextFencerId}
+                    ]
+                );
+                setName("");
+            }
+        }}>
+            <input
+                type={"text"}
+                className={"border border-1 rounded m-4"}
+                value={name}
+                onChange={e => {
+                    setName(e.target.value)}
+                }
+            />
+            <button type={"submit"}>Add</button>
+        </form>
+
+      <table>
+          <thead>
+              <tr>
+                  <th></th>
+                  <th>Name</th>
+                  <th>Points</th>
+              </tr>
+          </thead>
         {fencers.map(fencer => (
-            <li key={fencer.id}>{fencer.name}: {fencer.points}</li>
+            <tbody>
+                <tr>
+                    <td>{fencer.rank}.</td>
+                    <td>{fencer.name}</td>
+                    <td>{fencer.points}</td>
+                </tr>
+            </tbody>
         ))}
-      </ul>
+      </table>
       {started ? "" : <button onClick={randomSeed}>Start Round</button>}
         <form id={"roundForm"} onSubmit={endRound}>
             {bouts.map(bout => (
