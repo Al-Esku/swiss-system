@@ -114,33 +114,41 @@ function App() {
                     setName("");
                 }
             }}>
-                <input
-                    type={"text"}
-                    className={"border border-1 rounded"}
-                    value={name}
-                    onChange={e => {
-                        setName(e.target.value)}
-                    }
-                />
-                <button type={"submit"}>Add</button>
+                <div className={"w-full"}>
+                    <input
+                        type={"text"}
+                        className={"border border-1 rounded w-1/2"}
+                        value={name}
+                        onChange={e => {
+                            setName(e.target.value)}
+                        }
+                    />
+                    <button type={"submit"}>Add</button>
+                </div>
             </form>
-            <table>
+            <table className={"mt-8"}>
                 <thead>
                 <tr>
-                    <th></th>
-                    <th>Name</th>
-                    <th>Points</th>
-                    <th>SoO</th>
+                    <th className={"w-8"}></th>
+                    <th className={"w-48"}>Name</th>
+                    <th className={"w-20"}>Points</th>
+                    <th className={"w-20"}>SoO</th>
                 </tr>
                 </thead>
                 {fencers.map(fencer => (
-                    <tbody>
-                    <tr>
-                        <td>{fencer.rank}.</td>
-                        <td>{fencer.name}</td>
-                        <td>{fencer.points}</td>
-                        <td>{fencer.strength}</td>
-                    </tr>
+                    <tbody className={"border border-black border-1 m-2"}>
+                        <tr className={
+                            fencer.points === 0 ? "bg-red-400":
+                            fencer.points === 1 ? "bg-yellow-200":
+                            fencer.points === 2 ? "bg-green-300":
+                            fencer.points === 3 ? "bg-blue-400":
+                            fencer.points === 4 ? "bg-purple-400":
+                            fencer.points === 5 ? "bg-amber-300": ""}>
+                            <td className={"border border-black border-r-1"}>{fencer.rank}.</td>
+                            <td className={"pl-2"}>{fencer.name}</td>
+                            <td className={"font-semibold text-center border border-black border-l-1"}>{fencer.points}</td>
+                            <td className={"text-center border border-black border-l-1"}>{fencer.strength}</td>
+                        </tr>
                     </tbody>
                 ))}
             </table>
@@ -150,12 +158,16 @@ function App() {
             <p className={"mt-8 font-semibold"}>Bouts</p>
             <form id={"roundForm"} onSubmit={endRound} className={"m-2"}>
                 {bouts.map(bout => (
-                    <div>
-                        <input type='radio' value={bout.fencer1.id} id={bout.fencer1.id.toString()} name={bout.id.toString()} required onClick={() => updateBout(bout.id, bout.fencer1.id)}></input>
-                        <label htmlFor={bout.fencer1.id.toString()}>{bout.fencer1.name + " "}</label>
+                    <div className={"p-4"}>
+                        <div className={"inline-block w-1/3 mr-4"}>
+                            <input className={"peer hidden"} type='radio' value={bout.fencer1.id} id={bout.fencer1.id.toString()} name={bout.id.toString()} required onClick={() => updateBout(bout.id, bout.fencer1.id)}></input>
+                            <label htmlFor={bout.fencer1.id.toString()} className={"p-8 flex w-full rounded border border-1 peer-checked:border-black peer-checked:font-semibold"}>{bout.fencer1.name + " "}</label>
+                        </div>
                         vs
-                        <label htmlFor={bout.fencer2.id.toString()}>{" " + bout.fencer2.name}</label>
-                        <input type='radio' value={bout.fencer2.id} id={bout.fencer2.id.toString()} name={bout.id.toString()} onClick={() => updateBout(bout.id, bout.fencer2.id)}></input>
+                        <div className={"inline-block w-1/3 ml-4"}>
+                            <input className={"peer hidden"} type='radio' value={bout.fencer2.id} id={bout.fencer2.id.toString()} name={bout.id.toString()} onClick={() => updateBout(bout.id, bout.fencer2.id)}></input>
+                            <label htmlFor={bout.fencer2.id.toString()} className={"p-8 flex w-full rounded border border-1 peer-checked:border-black peer-checked:font-semibold"}>{" " + bout.fencer2.name}</label>
+                        </div>
                     </div>
                 ))}
                 {started ? <button type={"submit"}>End Round</button> : ""}
