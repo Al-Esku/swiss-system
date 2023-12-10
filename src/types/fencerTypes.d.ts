@@ -5,7 +5,8 @@ type fencer = {
     points: number,
     rank: number,
     opponents: number[],
-    strength: number
+    strength: number,
+    byes: number
 }
 
 type bout = {

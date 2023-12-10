@@ -7,24 +7,38 @@ let nextBoutId = 0;
 function App() {
   const [name, setName] = React.useState('')
   const [fencers, setFencers] = React.useState<fencer[]>([])
+  const [bye, setBye] = React.useState<fencer>()
   const [bouts, setBouts] = React.useState<bout[]>([])
+  const [rounds, setRounds] = React.useState(1)
   const [started, setStarted] = React.useState(false)
 
   const randomSeed = () => {
-      const newFencers = fencers.map(fencer => {
+      let newFencers = fencers.map(fencer => {
           return {
               ...fencer,
               seed: Math.random()
           }
       });
       newFencers.sort(function (a, b) {
-          if (a.points === b.points) {
-              return a.seed - b.seed
-          } else {
-              return a.points - b.points
-          }
+          return b.seed - a.seed
       });
-      newFencers.reverse();
+      if (newFencers.length % 2 !== 0) {
+          while (Math.floor( (rounds - 1) / fencers.length) !== newFencers[newFencers.length - 1].byes) {
+              newFencers = fencers.map(fencer => {
+                  return {
+                      ...fencer,
+                      seed: Math.random()
+                  }
+              });
+              newFencers.sort(function (a, b) {
+                  return b.seed - a.seed
+              });
+          }
+          setBye(newFencers.pop())
+      }
+      newFencers.sort(function (a, b) {
+          return b.points - a.points
+      });
       let newBouts: bout[] = [];
       for (let i = 0; i < newFencers.length; i= i+2) {
           newBouts.push({id: nextBoutId++, fencer1:newFencers[i], fencer2:newFencers[i+1], winner:0})
@@ -35,6 +49,7 @@ function App() {
 
   const endRound = (event: FormEvent) => {
       event.preventDefault();
+      setRounds(rounds + 1)
       setStarted(false);
       let updatedFencers: fencer[] = []
       bouts.forEach((bout) => {
@@ -51,6 +66,12 @@ function App() {
               }
           })
       })
+      if (bye) {
+          bye.points += 1
+          bye.byes += 1
+          updatedFencers.push(bye)
+      }
+      setBye(undefined)
       updatedFencers = updatedFencers.map((fencer) => {
           return {
               ...fencer,
@@ -108,7 +129,7 @@ function App() {
                     setFencers(
                         [
                             ...fencers,
-                            {id: nextFencerId++, name: name, seed: 0, points: 0, rank: nextFencerId, opponents: [], strength:0}
+                            {id: nextFencerId++, name: name, seed: 0, points: 0, rank: nextFencerId, opponents: [], strength: 0, byes: 0}
                         ]
                     );
                     setName("");
@@ -152,10 +173,10 @@ function App() {
                     </tbody>
                 ))}
             </table>
-            {started ? "" : <button onClick={randomSeed}>Start Round</button>}
+            <button onClick={randomSeed}>{started ? "Shuffle Bouts" : "Start Round"}</button>
         </div>
         <div>
-            <p className={"mt-8 font-semibold"}>Bouts</p>
+            <p className={"mt-8 font-semibold"}>Round {rounds} Bouts</p>
             <form id={"roundForm"} onSubmit={endRound} className={"m-2"}>
                 {bouts.map(bout => (
                     <div className={"p-4"}>
@@ -170,6 +191,7 @@ function App() {
                         </div>
                     </div>
                 ))}
+                {started && bye ? <p>Bye: {bye.name}</p>: ""}
                 {started ? <button type={"submit"}>End Round</button> : ""}
             </form>
         </div>
