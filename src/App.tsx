@@ -138,13 +138,13 @@ function App() {
                 <div className={"w-full"}>
                     <input
                         type={"text"}
-                        className={"border border-1 rounded w-1/2"}
+                        className={"border rounded w-1/2"}
                         value={name}
                         onChange={e => {
                             setName(e.target.value)}
                         }
                     />
-                    <button type={"submit"}>Add</button>
+                    <button type={"submit"} className={"border rounded px-2 ml-2"}>Add</button>
                 </div>
             </form>
             <table className={"mt-8"}>
@@ -153,11 +153,11 @@ function App() {
                     <th className={"w-8"}></th>
                     <th className={"w-48"}>Name</th>
                     <th className={"w-20"}>Points</th>
-                    <th className={"w-20"}>SoO</th>
+                    <th className={"w-20"}>SoS*</th>
                 </tr>
                 </thead>
                 {fencers.map(fencer => (
-                    <tbody className={"border border-black border-1 m-2"}>
+                    <tbody className={"border border-black m-2"}>
                         <tr className={
                             fencer.points === 0 ? "bg-red-400":
                             fencer.points === 1 ? "bg-yellow-200":
@@ -165,15 +165,16 @@ function App() {
                             fencer.points === 3 ? "bg-blue-400":
                             fencer.points === 4 ? "bg-purple-400":
                             fencer.points === 5 ? "bg-amber-300": ""}>
-                            <td className={"border border-black border-r-1"}>{fencer.rank}.</td>
+                            <td className={"border-black border-r"}>{fencer.rank}.</td>
                             <td className={"pl-2"}>{fencer.name}</td>
-                            <td className={"font-semibold text-center border border-black border-l-1"}>{fencer.points}</td>
-                            <td className={"text-center border border-black border-l-1"}>{fencer.strength}</td>
+                            <td className={"font-semibold text-center border-black border-l"}>{fencer.points}</td>
+                            <td className={"text-center border-black border-l"}>{fencer.strength}</td>
                         </tr>
                     </tbody>
                 ))}
             </table>
-            <button onClick={randomSeed}>{started ? "Shuffle Bouts" : "Start Round"}</button>
+            <p className={"my-2 italic w-1/3 text-xs"}>* SoS: Strength of Schedule, the sum of points scored by your opponents</p>
+            <button onClick={randomSeed} className={"border rounded px-2 mt-2"}>{started ? "Shuffle Bouts" : "Start Round"}</button>
         </div>
         <div>
             <p className={"mt-8 font-semibold"}>Round {rounds} Bouts</p>
@@ -192,7 +193,7 @@ function App() {
                     </div>
                 ))}
                 {started && bye ? <p>Bye: {bye.name}</p>: ""}
-                {started ? <button type={"submit"}>End Round</button> : ""}
+                {started ? <button type={"submit"} className={"border rounded px-2 mt-2"}>End Round</button> : ""}
             </form>
         </div>
     </div>
