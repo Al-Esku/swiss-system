@@ -163,8 +163,7 @@ function App() {
                             fencer.points === 1 ? "bg-yellow-200":
                             fencer.points === 2 ? "bg-green-300":
                             fencer.points === 3 ? "bg-blue-400":
-                            fencer.points === 4 ? "bg-purple-400":
-                            fencer.points === 5 ? "bg-amber-300": ""}>
+                            fencer.points === 4 ? "bg-purple-400": "bg-amber-300"}>
                             <td className={"border-black border-r"}>{fencer.rank}.</td>
                             <td className={"pl-2"}>{fencer.name}</td>
                             <td className={"font-semibold text-center border-black border-l"}>{fencer.points}</td>
