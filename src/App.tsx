@@ -60,9 +60,10 @@ function App() {
                   updatedFencers.push({
                       ...fencer,
                       points: fencer.points + (fencer.id === bout.winner ? 1 : 0),
-                      opponents: [
-                          ...fencer.opponents,
-                          (fencer.id === bout.fencer1.id ? bout.fencer2.id : bout.fencer1.id)
+                      results: [
+                          ...fencer.results,
+                          {opponent: (fencer.id === bout.fencer1.id ? bout.fencer2.id : bout.fencer1.id),
+                              victory: bout.winner === fencer.id}
                       ]
                   })
               }
@@ -77,11 +78,22 @@ function App() {
       updatedFencers = updatedFencers.map((fencer) => {
           return {
               ...fencer,
-              strength: (() => {
+              strengthOfSchedule: (() => {
                   let sum = 0
-                  fencer.opponents.forEach((opponent) => {
+                  fencer.results.forEach((result) => {
                       updatedFencers.forEach((opponentFencer) => {
-                          if (opponentFencer.id === opponent) {
+                          if (opponentFencer.id === result.opponent) {
+                              sum += opponentFencer.points
+                          }
+                      })
+                  })
+                  return sum
+              })(),
+              strengthOfVictory: (() => {
+                  let sum = 0
+                  fencer.results.forEach((result) => {
+                      updatedFencers.forEach((opponentFencer) => {
+                          if (opponentFencer.id === result.opponent && result.victory) {
                               sum += opponentFencer.points
                           }
                       })
@@ -93,8 +105,10 @@ function App() {
       updatedFencers.sort(function (a, b) {
           if (b.points !== a.points){
               return b.points - a.points
+          } else if (b.strengthOfSchedule !== a.strengthOfSchedule) {
+              return b.strengthOfSchedule - a.strengthOfSchedule
           } else {
-              return b.strength - a.strength
+              return b.strengthOfVictory - a.strengthOfVictory
           }
       });
       let count = 1
@@ -143,7 +157,15 @@ function App() {
                     setFencers(
                         [
                             ...fencers,
-                            {id: nextFencerId++, name: name, seed: 0, points: 0, rank: (fencers.length + 1), opponents: [], strength: 0, byes: 0}
+                            {id: nextFencerId++,
+                                name: name,
+                                seed: 0,
+                                points: 0,
+                                rank: (fencers.length + 1),
+                                results: [],
+                                strengthOfSchedule: 0,
+                                strengthOfVictory: 0,
+                                byes: 0}
                         ]
                     );
                     setName("");
@@ -168,6 +190,7 @@ function App() {
                     <th className={"w-48"}>Name</th>
                     <th className={"w-20"}>Points</th>
                     <th className={"w-20"}>SoS*</th>
+                    <th className={"w-20"}>SoV**</th>
                     <th></th>
                 </tr>
                 </thead>
@@ -182,7 +205,8 @@ function App() {
                             <td className={"border-black border-r"}>{fencer.rank}.</td>
                             <td className={"pl-2"}>{fencer.name}</td>
                             <td className={"font-semibold text-center border-black border-l"}>{fencer.points}</td>
-                            <td className={"text-center border-black border-l"}>{fencer.strength}</td>
+                            <td className={"text-center border-black border-l"}>{fencer.strengthOfSchedule}</td>
+                            <td className={"text-center border-black border-l"}>{fencer.strengthOfVictory}</td>
                             <td className={"items-center border-black border-l"}>
                                 <a className={"hover:cursor-pointer"} onClick={() => removeFencer(fencer.id)}>
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="red" className="w-6 h-6">
@@ -194,7 +218,8 @@ function App() {
                     </tbody>
                 ))}
             </table>
-            <p className={"my-2 italic w-1/3 text-xs"}>* SoS: Strength of Schedule, the sum of points scored by your opponents</p>
+            <p className={"my-2 italic w-1/3 text-xs"}>* First Tiebreaker: Strength of Schedule, the sum of points scored by your opponents</p>
+            <p className={"my-2 italic w-1/3 text-xs"}>** Second Tiebreaker: Strength of Victory, the sum of points scored by people you beat</p>
             <button onClick={randomSeed} className={"border rounded px-2 mt-2"}>{started ? "Shuffle Bouts" : "Start Round"}</button>
         </div>
         <div>

@@ -4,8 +4,9 @@ type fencer = {
     seed: number,
     points: number,
     rank: number,
-    opponents: number[],
-    strength: number,
+    results: result[],
+    strengthOfSchedule: number,
+    strengthOfVictory: number,
     byes: number
 }
 
@@ -14,4 +15,9 @@ type bout = {
     fencer1: fencer,
     fencer2: fencer,
     winner: number
+}
+
+type result = {
+    opponent: number,
+    victory: boolean
 }
