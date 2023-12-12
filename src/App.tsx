@@ -13,38 +13,40 @@ function App() {
   const [started, setStarted] = React.useState(false)
 
   const randomSeed = () => {
-      let newFencers = fencers.map(fencer => {
-          return {
-              ...fencer,
-              seed: Math.random()
+      if (fencers.length >= 2) {
+          let newFencers = fencers.map(fencer => {
+              return {
+                  ...fencer,
+                  seed: Math.random()
+              }
+          });
+          newFencers.sort(function (a, b) {
+              return b.seed - a.seed
+          });
+          if (newFencers.length % 2 !== 0) {
+              while (Math.floor( (rounds - 1) / fencers.length) !== newFencers[newFencers.length - 1].byes) {
+                  newFencers = fencers.map(fencer => {
+                      return {
+                          ...fencer,
+                          seed: Math.random()
+                      }
+                  });
+                  newFencers.sort(function (a, b) {
+                      return b.seed - a.seed
+                  });
+              }
+              setBye(newFencers.pop())
           }
-      });
-      newFencers.sort(function (a, b) {
-          return b.seed - a.seed
-      });
-      if (newFencers.length % 2 !== 0) {
-          while (Math.floor( (rounds - 1) / fencers.length) !== newFencers[newFencers.length - 1].byes) {
-              newFencers = fencers.map(fencer => {
-                  return {
-                      ...fencer,
-                      seed: Math.random()
-                  }
-              });
-              newFencers.sort(function (a, b) {
-                  return b.seed - a.seed
-              });
+          newFencers.sort(function (a, b) {
+              return b.points - a.points
+          });
+          let newBouts: bout[] = [];
+          for (let i = 0; i < newFencers.length; i= i+2) {
+              newBouts.push({id: nextBoutId++, fencer1:newFencers[i], fencer2:newFencers[i+1], winner:0})
           }
-          setBye(newFencers.pop())
+          setBouts(newBouts);
+          setStarted(true);
       }
-      newFencers.sort(function (a, b) {
-          return b.points - a.points
-      });
-      let newBouts: bout[] = [];
-      for (let i = 0; i < newFencers.length; i= i+2) {
-          newBouts.push({id: nextBoutId++, fencer1:newFencers[i], fencer2:newFencers[i+1], winner:0})
-      }
-      setBouts(newBouts);
-      setStarted(true);
   }
 
   const endRound = (event: FormEvent) => {
@@ -120,6 +122,18 @@ function App() {
       setBouts(newBouts)
   }
 
+  const removeFencer = (id: number) => {
+      let newFencers = fencers.filter(fencer => fencer.id !== id)
+      let count = 1
+      newFencers = newFencers.map(fencer => {
+          return {
+              ...fencer,
+              rank: count++
+          }
+      })
+      setFencers(newFencers)
+  }
+
   return (
     <div className={"grid grid-cols-2"}>
         <div className={"m-8"}>
@@ -129,7 +143,7 @@ function App() {
                     setFencers(
                         [
                             ...fencers,
-                            {id: nextFencerId++, name: name, seed: 0, points: 0, rank: nextFencerId, opponents: [], strength: 0, byes: 0}
+                            {id: nextFencerId++, name: name, seed: 0, points: 0, rank: (fencers.length + 1), opponents: [], strength: 0, byes: 0}
                         ]
                     );
                     setName("");
@@ -154,6 +168,7 @@ function App() {
                     <th className={"w-48"}>Name</th>
                     <th className={"w-20"}>Points</th>
                     <th className={"w-20"}>SoS*</th>
+                    <th></th>
                 </tr>
                 </thead>
                 {fencers.map(fencer => (
@@ -168,6 +183,13 @@ function App() {
                             <td className={"pl-2"}>{fencer.name}</td>
                             <td className={"font-semibold text-center border-black border-l"}>{fencer.points}</td>
                             <td className={"text-center border-black border-l"}>{fencer.strength}</td>
+                            <td className={"items-center border-black border-l"}>
+                                <a className={"hover:cursor-pointer"} onClick={() => removeFencer(fencer.id)}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="red" className="w-6 h-6">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </a>
+                            </td>
                         </tr>
                     </tbody>
                 ))}
