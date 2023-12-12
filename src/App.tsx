@@ -150,6 +150,7 @@ function App() {
 
   return (
     <div className={"grid grid-cols-2"}>
+
         <div className={"m-8"}>
             <form onSubmit={(event) => {
                 event.preventDefault();
@@ -183,44 +184,47 @@ function App() {
                     <button type={"submit"} className={"border rounded px-2 ml-2"}>Add</button>
                 </div>
             </form>
-            <table className={"mt-8"}>
-                <thead>
-                <tr>
-                    <th className={"w-8"}></th>
-                    <th className={"w-48"}>Name</th>
-                    <th className={"w-20"}>Points</th>
-                    <th className={"w-20"}>SoS*</th>
-                    <th className={"w-20"}>SoV**</th>
-                    <th></th>
-                </tr>
-                </thead>
-                {fencers.map(fencer => (
-                    <tbody className={"border border-black m-2"}>
-                        <tr className={
-                            fencer.points === 0 ? "bg-red-400":
-                            fencer.points === 1 ? "bg-yellow-200":
-                            fencer.points === 2 ? "bg-green-300":
-                            fencer.points === 3 ? "bg-blue-400":
-                            fencer.points === 4 ? "bg-purple-400": "bg-amber-300"}>
-                            <td className={"border-black border-r"}>{fencer.rank}.</td>
-                            <td className={"pl-2"}>{fencer.name}</td>
-                            <td className={"font-semibold text-center border-black border-l"}>{fencer.points}</td>
-                            <td className={"text-center border-black border-l"}>{fencer.strengthOfSchedule}</td>
-                            <td className={"text-center border-black border-l"}>{fencer.strengthOfVictory}</td>
-                            <td className={"items-center border-black border-l"}>
-                                <a className={"hover:cursor-pointer"} onClick={() => removeFencer(fencer.id)}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="red" className="w-6 h-6">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </a>
-                            </td>
+            {fencers.length > 0 ?
+                <>
+                    <table className={"mt-8"}>
+                        <thead>
+                        <tr>
+                            <th className={"w-8"}></th>
+                            <th className={"w-48"}>Name</th>
+                            <th className={"w-20"}>Points</th>
+                            <th className={"w-20"}>SoS*</th>
+                            <th className={"w-20"}>SoV**</th>
+                            <th></th>
                         </tr>
-                    </tbody>
-                ))}
-            </table>
-            <p className={"my-2 italic w-1/3 text-xs"}>* First Tiebreaker: Strength of Schedule, the sum of points scored by your opponents</p>
-            <p className={"my-2 italic w-1/3 text-xs"}>** Second Tiebreaker: Strength of Victory, the sum of points scored by people you beat</p>
-            <button onClick={randomSeed} className={"border rounded px-2 mt-2"}>{started ? "Shuffle Bouts" : "Start Round"}</button>
+                        </thead>
+                        {fencers.map(fencer => (
+                            <tbody className={"border border-black m-2"}>
+                            <tr className={
+                                fencer.points === 0 ? "bg-red-400":
+                                    fencer.points === 1 ? "bg-yellow-200":
+                                        fencer.points === 2 ? "bg-green-300":
+                                            fencer.points === 3 ? "bg-blue-400":
+                                                fencer.points === 4 ? "bg-purple-400": "bg-amber-300"}>
+                                <td className={"border-black border-r"}>{fencer.rank}.</td>
+                                <td className={"pl-2"}>{fencer.name}</td>
+                                <td className={"font-semibold text-center border-black border-l"}>{fencer.points}</td>
+                                <td className={"text-center border-black border-l"}>{fencer.strengthOfSchedule}</td>
+                                <td className={"text-center border-black border-l"}>{fencer.strengthOfVictory}</td>
+                                <td className={"items-center border-black border-l"}>
+                                    <a className={"hover:cursor-pointer"} onClick={() => removeFencer(fencer.id)}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="red" className="w-6 h-6">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        ))}
+                    </table>
+                    <p className={"my-2 italic w-1/3 text-xs"}>* First Tiebreaker: Strength of Schedule, the sum of points scored by your opponents</p>
+                    <p className={"my-2 italic w-1/3 text-xs"}>** Second Tiebreaker: Strength of Victory, the sum of points scored by people you beat</p>
+                    <button onClick={randomSeed} className={"border rounded px-2 mt-2"}>{started ? "Shuffle Bouts" : "Start Round"}</button>
+                </>: ""}
         </div>
         <div>
             {started ? <p className={"mt-8 font-semibold"}>Round {rounds} Bouts</p>: ""}
