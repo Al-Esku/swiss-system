@@ -198,7 +198,7 @@ function App() {
             <button onClick={randomSeed} className={"border rounded px-2 mt-2"}>{started ? "Shuffle Bouts" : "Start Round"}</button>
         </div>
         <div>
-            <p className={"mt-8 font-semibold"}>Round {rounds} Bouts</p>
+            {started ? <p className={"mt-8 font-semibold"}>Round {rounds} Bouts</p>: ""}
             <form id={"roundForm"} onSubmit={endRound} className={"m-2"}>
                 {bouts.map(bout => (
                     <div className={"p-4"}>
