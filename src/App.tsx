@@ -14,37 +14,53 @@ function App() {
 
   const randomSeed = () => {
       if (fencers.length >= 2) {
-          let newFencers = fencers.map(fencer => {
-              return {
-                  ...fencer,
-                  seed: Math.random()
+          let optimal: individual = {bouts: [], cost: Infinity, bye:undefined}
+          for (let i = 0; i <= 10000; i++) {
+              let newFencers = fencers.map(fencer => {
+                  return {
+                      ...fencer,
+                      seed: Math.random()
+                  }
+              });
+              newFencers.sort(function (a, b) {
+                  return b.seed - a.seed
+              });
+              let bye
+              if (newFencers.length % 2 !== 0) {
+                  bye = newFencers.pop()
               }
-          });
-          newFencers.sort(function (a, b) {
-              return b.seed - a.seed
-          });
-          if (newFencers.length % 2 !== 0) {
-              while (Math.floor( (rounds - 1) / fencers.length) !== newFencers[newFencers.length - 1].byes) {
-                  newFencers = fencers.map(fencer => {
-                      return {
-                          ...fencer,
-                          seed: Math.random()
-                      }
-                  });
+              if (i < 1000) {
                   newFencers.sort(function (a, b) {
-                      return b.seed - a.seed
+                      return b.points - a.points
                   });
               }
-              setBye(newFencers.pop())
+              let newBouts: bout[] = [];
+              for (let i = 0; i < newFencers.length; i= i+2) {
+                  newBouts.push({id: nextBoutId++,
+                      fencer1:newFencers[i],
+                      fencer2:newFencers[i+1],
+                      winner:0,
+                      cost: newFencers[i].results.some(result => result.opponent === newFencers[i+1].id) ? Math.abs(newFencers[i].points - newFencers[i+1].points) > 1 ? Math.abs(newFencers[i].points - newFencers[i+1].points) + 0.5 : 1.5 : Math.abs(newFencers[i].points - newFencers[i+1].points)})
+              }
+              let cost = 0
+              if (bye && Math.floor( (rounds - 1) / fencers.length) !== bye.byes) {
+                  cost += 1000
+              }
+              newBouts.forEach((bout) => {
+                  cost += bout.cost
+              })
+              if (cost < optimal.cost) {
+                  optimal.bouts = newBouts
+                  optimal.cost = cost
+                  if (bye) {
+                      optimal.bye = bye
+                  }
+              }
           }
-          newFencers.sort(function (a, b) {
-              return b.points - a.points
-          });
-          let newBouts: bout[] = [];
-          for (let i = 0; i < newFencers.length; i= i+2) {
-              newBouts.push({id: nextBoutId++, fencer1:newFencers[i], fencer2:newFencers[i+1], winner:0})
+          setBouts(optimal.bouts);
+          if (optimal.bye) {
+              setBye(optimal.bye)
           }
-          setBouts(newBouts);
           setStarted(true);
       }
   }
@@ -240,6 +256,7 @@ function App() {
                             <input className={"peer hidden"} type='radio' value={bout.fencer2.id} id={bout.fencer2.id.toString()} name={bout.id.toString()} onClick={() => updateBout(bout.id, bout.fencer2.id)}></input>
                             <label htmlFor={bout.fencer2.id.toString()} className={"p-8 flex w-full rounded border border-1 peer-checked:border-black peer-checked:font-semibold"}>{" " + bout.fencer2.name}</label>
                         </div>
+                        {bout.cost}
                     </div>
                 ))}
                 {started && bye ? <p>Bye: {bye.name}</p>: ""}

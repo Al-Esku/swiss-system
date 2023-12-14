@@ -14,10 +14,17 @@ type bout = {
     id: number,
     fencer1: fencer,
     fencer2: fencer,
-    winner: number
+    winner: number,
+    cost: number
 }
 
 type result = {
     opponent: number,
     victory: boolean
+}
+
+type individual = {
+    bouts: bout[],
+    bye: undefined|fencer,
+    cost: number
 }
