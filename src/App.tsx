@@ -256,7 +256,6 @@ function App() {
                             <input className={"peer hidden"} type='radio' value={bout.fencer2.id} id={bout.fencer2.id.toString()} name={bout.id.toString()} onClick={() => updateBout(bout.id, bout.fencer2.id)}></input>
                             <label htmlFor={bout.fencer2.id.toString()} className={"p-8 flex w-full rounded border border-1 peer-checked:border-black peer-checked:font-semibold"}>{" " + bout.fencer2.name}</label>
                         </div>
-                        {bout.cost}
                     </div>
                 ))}
                 {started && bye ? <p>Bye: {bye.name}</p>: ""}
