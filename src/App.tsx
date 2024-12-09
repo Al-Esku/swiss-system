@@ -6,11 +6,13 @@ let nextBoutId = 0;
 
 function App() {
   const [name, setName] = React.useState('')
+  const [table, setTable] = React.useState<fencer[]>([])
   const [fencers, setFencers] = React.useState<fencer[]>([])
   const [bye, setBye] = React.useState<fencer>()
   const [bouts, setBouts] = React.useState<bout[]>([])
   const [rounds, setRounds] = React.useState(1)
   const [started, setStarted] = React.useState(false)
+  const [indexOpen, setIndexOpen] = React.useState(-1)
 
   const randomSeed = () => {
       if (fencers.length >= 2) {
@@ -70,10 +72,24 @@ function App() {
       setRounds(rounds + 1)
       setStarted(false);
       let updatedFencers: fencer[] = []
+      let updatedTable: fencer[] = []
       bouts.forEach((bout) => {
           fencers.forEach((fencer) => {
               if (fencer.id === bout.fencer1.id || fencer.id === bout.fencer2.id) {
                   updatedFencers.push({
+                      ...fencer,
+                      points: fencer.points + (fencer.id === bout.winner ? 1 : 0),
+                      results: [
+                          ...fencer.results,
+                          {opponent: (fencer.id === bout.fencer1.id ? bout.fencer2.id : bout.fencer1.id),
+                              victory: bout.winner === fencer.id}
+                      ]
+                  })
+              }
+          })
+          table.forEach((fencer) => {
+              if (fencer.id === bout.fencer1.id || fencer.id === bout.fencer2.id) {
+                  updatedTable.push({
                       ...fencer,
                       points: fencer.points + (fencer.id === bout.winner ? 1 : 0),
                       results: [
@@ -89,15 +105,16 @@ function App() {
           bye.points += 1
           bye.byes += 1
           updatedFencers.push(bye)
+          updatedTable.push(bye)
       }
       setBye(undefined)
-      updatedFencers = updatedFencers.map((fencer) => {
+      updatedTable = updatedTable.map((fencer) => {
           return {
               ...fencer,
               strengthOfSchedule: (() => {
                   let sum = 0
                   fencer.results.forEach((result) => {
-                      updatedFencers.forEach((opponentFencer) => {
+                      updatedTable.forEach((opponentFencer) => {
                           if (opponentFencer.id === result.opponent) {
                               sum += opponentFencer.points
                           }
@@ -108,7 +125,7 @@ function App() {
               strengthOfVictory: (() => {
                   let sum = 0
                   fencer.results.forEach((result) => {
-                      updatedFencers.forEach((opponentFencer) => {
+                      updatedTable.forEach((opponentFencer) => {
                           if (opponentFencer.id === result.opponent && result.victory) {
                               sum += opponentFencer.points
                           }
@@ -118,7 +135,7 @@ function App() {
               })()
           }
       })
-      updatedFencers.sort(function (a, b) {
+      updatedTable.sort(function (a, b) {
           if (b.points !== a.points){
               return b.points - a.points
           } else if (b.strengthOfSchedule !== a.strengthOfSchedule) {
@@ -128,13 +145,14 @@ function App() {
           }
       });
       let count = 1
-      updatedFencers = updatedFencers.map(fencer => {
+      updatedTable = updatedTable.map(fencer => {
           return {
               ...fencer,
               rank: count++
           }
       })
       setFencers(updatedFencers)
+      setTable(updatedTable)
       setBouts([])
   }
 
@@ -154,11 +172,24 @@ function App() {
 
   const removeFencer = (id: number) => {
       let newFencers = fencers.filter(fencer => fencer.id !== id)
+      let newTable = table.filter(fencer => fencer.id !== id)
       let count = 1
-      newFencers = newFencers.map(fencer => {
+      newTable = newTable.map(fencer => {
           return {
               ...fencer,
               rank: count++
+          }
+      })
+      setFencers(newFencers)
+      setTable(newTable)
+  }
+
+  const resetPairings = () => {
+      let newFencers = fencers.map((fencer) => {
+          return {
+              ...fencer,
+              points: 0,
+              results: []
           }
       })
       setFencers(newFencers)
@@ -174,11 +205,25 @@ function App() {
                     setFencers(
                         [
                             ...fencers,
-                            {id: nextFencerId++,
+                            {id: nextFencerId,
                                 name: name,
                                 seed: 0,
                                 points: 0,
                                 rank: (fencers.length + 1),
+                                results: [],
+                                strengthOfSchedule: 0,
+                                strengthOfVictory: 0,
+                                byes: 0}
+                        ]
+                    );
+                    setTable(
+                        [
+                            ...table,
+                            {id: nextFencerId++,
+                                name: name,
+                                seed: 0,
+                                points: 0,
+                                rank: (table.length + 1),
                                 results: [],
                                 strengthOfSchedule: 0,
                                 strengthOfVictory: 0,
@@ -200,7 +245,7 @@ function App() {
                     <button type={"submit"} className={"border rounded px-2 ml-2"}>Add</button>
                 </div>
             </form>
-            {fencers.length > 0 ?
+            {table.length > 0 ?
                 <>
                     <table className={"mt-8"}>
                         <thead>
@@ -213,43 +258,69 @@ function App() {
                             <th></th>
                         </tr>
                         </thead>
-                        {fencers.map(fencer => (
+                        {table.map(((fencer, index) => (
                             <tbody className={"border border-black m-2"}>
                             <tr className={
-                                fencer.points === 0 ? "bg-red-400":
-                                    fencer.points === 1 ? "bg-yellow-200":
-                                        fencer.points === 2 ? "bg-green-300":
-                                            fencer.points === 3 ? "bg-blue-400":
-                                                fencer.points === 4 ? "bg-purple-400": "bg-amber-300"}>
-                                <td className={"border-black border-r"}>{fencer.rank}.</td>
-                                <td className={"pl-2"}>{fencer.name}</td>
-                                <td className={"font-semibold text-center border-black border-l"}>{fencer.points}</td>
-                                <td className={"text-center border-black border-l"}>{fencer.strengthOfSchedule}</td>
-                                <td className={"text-center border-black border-l"}>{fencer.strengthOfVictory}</td>
+                                fencer.points === 0 ? "bg-red-400" :
+                                    fencer.points === 1 ? "bg-yellow-200" :
+                                        fencer.points === 2 ? "bg-green-300" :
+                                            fencer.points === 3 ? "bg-blue-400" :
+                                                fencer.points === 4 ? "bg-purple-400" : "bg-amber-300"}>
+                                <td className={"border-black border-r"} onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.rank}.</td>
+                                <td className={"pl-2"} onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.name}</td>
+                                <td className={"font-semibold text-center border-black border-l"} onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.points}</td>
+                                <td className={"text-center border-black border-l"} onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.strengthOfSchedule}</td>
+                                <td className={"text-center border-black border-l"} onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.strengthOfVictory}</td>
                                 <td className={"items-center border-black border-l"}>
                                     <a className={"hover:cursor-pointer"} onClick={() => removeFencer(fencer.id)}>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="red" className="w-6 h-6">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                             strokeWidth={1.5} stroke="red" className="w-6 h-6">
+                                            <path strokeLinecap="round" strokeLinejoin="round"
+                                                  d="M6 18L18 6M6 6l12 12"/>
                                         </svg>
                                     </a>
                                 </td>
                             </tr>
+                            {index === indexOpen && <tr className={
+                                fencer.points === 0 ? "bg-red-400" :
+                                    fencer.points === 1 ? "bg-yellow-200" :
+                                        fencer.points === 2 ? "bg-green-300" :
+                                            fencer.points === 3 ? "bg-blue-400" :
+                                                fencer.points === 4 ? "bg-purple-400" : "bg-amber-300"}>
+                                <td className={"pl-2 border-black border-t"} colSpan={6}>{fencer.results.map((result) => {
+                                    return <div>vs {
+                                        (() => {
+                                            const opponent = table.find(fencer => fencer.id === result.opponent)
+                                            return opponent ? opponent.name : "[Removed]"
+                                        })()
+                                        }: {result.victory ? "V": "D"}</div>
+                                })}</td>
+                            </tr>}
                             </tbody>
-                        ))}
+                        )))}
                     </table>
-                    <p className={"my-2 italic w-1/3 text-xs"}>* First Tiebreaker: Strength of Schedule, the sum of points scored by your opponents</p>
-                    <p className={"my-2 italic w-1/3 text-xs"}>** Second Tiebreaker: Strength of Victory, the sum of points scored by people you beat</p>
-                    <button onClick={randomSeed} className={"border rounded px-2 mt-2"}>{started ? "Shuffle Bouts" : "Start Round"}</button>
-                </>: ""}
+                    <p className={"my-2 italic w-1/3 text-xs"}>* First Tiebreaker: Strength of Schedule, the sum of
+                        points scored by your opponents</p>
+                    <p className={"my-2 italic w-1/3 text-xs"}>** Second Tiebreaker: Strength of Victory, the sum of
+                        points scored by people you beat</p>
+                    <button onClick={randomSeed}
+                            className={"border rounded px-2 mt-2"}>{started ? "Shuffle Bouts" : "Start Round"}</button>
+                    <button onClick={resetPairings}
+                            className={"border rounded px-2 mt-2 ml-2"}>Reset Pairings
+                    </button>
+                </> : ""}
         </div>
         <div>
-            {started ? <p className={"mt-8 font-semibold"}>Round {rounds} Bouts</p>: ""}
+            {started ? <p className={"mt-8 font-semibold"}>Round {rounds} Bouts</p> : ""}
             <form id={"roundForm"} onSubmit={endRound} className={"m-2"}>
                 {bouts.map(bout => (
                     <div className={"p-4"}>
                         <div className={"inline-block w-1/3 mr-4"}>
-                            <input className={"peer hidden"} type='radio' value={bout.fencer1.id} id={bout.fencer1.id.toString()} name={bout.id.toString()} required onClick={() => updateBout(bout.id, bout.fencer1.id)}></input>
-                            <label htmlFor={bout.fencer1.id.toString()} className={"p-8 flex w-full rounded border border-1 peer-checked:border-black peer-checked:font-semibold"}>{bout.fencer1.name + " "}</label>
+                            <input className={"peer hidden"} type='radio' value={bout.fencer1.id}
+                                   id={bout.fencer1.id.toString()} name={bout.id.toString()} required
+                                   onClick={() => updateBout(bout.id, bout.fencer1.id)}></input>
+                            <label htmlFor={bout.fencer1.id.toString()}
+                                   className={"p-8 flex w-full rounded border border-1 peer-checked:border-black peer-checked:font-semibold"}>{bout.fencer1.name + " "}</label>
                         </div>
                         vs
                         <div className={"inline-block w-1/3 ml-4"}>
