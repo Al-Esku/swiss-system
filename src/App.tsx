@@ -41,6 +41,8 @@ function App() {
                   newBouts.push({id: nextBoutId++,
                       fencer1:newFencers[i],
                       fencer2:newFencers[i+1],
+                      score1:undefined,
+                      score2:undefined,
                       winner:0,
                       cost: newFencers[i].results.some(result => result.opponent === newFencers[i+1].id) ? Math.abs(newFencers[i].points - newFencers[i+1].points) > 1 ? Math.abs(newFencers[i].points - newFencers[i+1].points) + 0.5 : 1.5 : Math.abs(newFencers[i].points - newFencers[i+1].points)})
               }
@@ -69,91 +71,143 @@ function App() {
 
   const endRound = (event: FormEvent) => {
       event.preventDefault();
-      setRounds(rounds + 1)
-      setStarted(false);
-      let updatedFencers: fencer[] = []
-      let updatedTable: fencer[] = []
-      bouts.forEach((bout) => {
-          fencers.forEach((fencer) => {
-              if (fencer.id === bout.fencer1.id || fencer.id === bout.fencer2.id) {
-                  updatedFencers.push({
-                      ...fencer,
-                      points: fencer.points + (fencer.id === bout.winner ? 1 : 0),
-                      results: [
-                          ...fencer.results,
-                          {opponent: (fencer.id === bout.fencer1.id ? bout.fencer2.id : bout.fencer1.id),
-                              victory: bout.winner === fencer.id}
-                      ]
-                  })
+      if (bouts.every((bout) => {
+          if (bout.score1 !== undefined && bout.score2 !== undefined) {
+              if (bout.winner === bout.fencer1.id) {
+                  return bout.score1 >= bout.score2
+              } else {
+                  return bout.score2 >= bout.score1
+              }
+          }
+          return false
+      })) {
+          setRounds(rounds + 1)
+          setStarted(false);
+          let updatedFencers: fencer[] = []
+          let updatedTable: fencer[] = []
+          bouts.forEach((bout) => {
+              fencers.forEach((fencer) => {
+                  if (fencer.id === bout.fencer1.id || fencer.id === bout.fencer2.id) {
+                      updatedFencers.push({
+                          ...fencer,
+                          points: fencer.points + (fencer.id === bout.winner ? 1 : 0),
+                          results: [
+                              ...fencer.results,
+                              {opponent: (fencer.id === bout.fencer1.id ? bout.fencer2.id : bout.fencer1.id),
+                                  score: (fencer.id === bout.fencer1.id ? (bout.score1 ? bout.score1 : -1) : (bout.score2 ? bout.score2 : -1)),
+                                  oppScore: (fencer.id === bout.fencer1.id ? (bout.score2 ? bout.score2 : -1) : (bout.score1 ? bout.score1 : -1)),
+                                  victory: bout.winner === fencer.id}
+                          ]
+                      })
+                  }
+              })
+              table.forEach((fencer) => {
+                  if (fencer.id === bout.fencer1.id || fencer.id === bout.fencer2.id) {
+                      updatedTable.push({
+                          ...fencer,
+                          points: fencer.points + (fencer.id === bout.winner ? 1 : 0),
+                          results: [
+                              ...fencer.results,
+                              {opponent: (fencer.id === bout.fencer1.id ? bout.fencer2.id : bout.fencer1.id),
+                                  score: (fencer.id === bout.fencer1.id ? (bout.score1 !== undefined ? bout.score1 : -1) : (bout.score2 !== undefined ? bout.score2 : -1)),
+                                  oppScore: (fencer.id === bout.fencer1.id ? (bout.score2 !== undefined ? bout.score2 : -1) : (bout.score1 !== undefined ? bout.score1 : -1)),
+                                  victory: bout.winner === fencer.id}
+                          ]
+                      })
+                  }
+              })
+          })
+          if (bye) {
+              let tableBye = table.find(fencer => {
+                  return fencer.id === bye.id
+              })
+              bye.points += 1
+              bye.byes += 1
+              bye.results = [
+                  ...bye.results,
+                  {opponent: -1,
+                      score: 0,
+                      oppScore: 0,
+                      victory: true}
+              ]
+              updatedFencers.push(bye)
+              if (tableBye) {
+                  tableBye.points += 1
+                  tableBye.byes += 1
+                  tableBye.results = [
+                      ...tableBye.results,
+                      {opponent: -1,
+                          score: 0,
+                          oppScore: 0,
+                          victory: true}
+                  ]
+                  updatedTable.push(tableBye)
+              }
+          }
+          setBye(undefined)
+          updatedTable = updatedTable.map((fencer) => {
+              return {
+                  ...fencer,
+                  hitsScored: (() => {
+                      let sum = 0
+                      fencer.results.forEach((result) => {
+                          sum += result.score
+                      })
+                      return sum
+                  })(),
+                  hitsRecieved: (() => {
+                      let sum = 0
+                      fencer.results.forEach((result) => {
+                          sum += result.oppScore
+                      })
+                      return sum
+                  })(),
+                  strengthOfSchedule: (() => {
+                      let sum = 0
+                      fencer.results.forEach((result) => {
+                          updatedTable.forEach((opponentFencer) => {
+                              if (opponentFencer.id === result.opponent) {
+                                  sum += opponentFencer.points
+                              }
+                          })
+                      })
+                      return sum
+                  })(),
+                  strengthOfVictory: (() => {
+                      let sum = 0
+                      fencer.results.forEach((result) => {
+                          updatedTable.forEach((opponentFencer) => {
+                              if (opponentFencer.id === result.opponent && result.victory) {
+                                  sum += opponentFencer.points
+                              }
+                          })
+                      })
+                      return sum
+                  })()
               }
           })
-          table.forEach((fencer) => {
-              if (fencer.id === bout.fencer1.id || fencer.id === bout.fencer2.id) {
-                  updatedTable.push({
-                      ...fencer,
-                      points: fencer.points + (fencer.id === bout.winner ? 1 : 0),
-                      results: [
-                          ...fencer.results,
-                          {opponent: (fencer.id === bout.fencer1.id ? bout.fencer2.id : bout.fencer1.id),
-                              victory: bout.winner === fencer.id}
-                      ]
-                  })
+          updatedTable.sort(function (a, b) {
+              if (b.points !== a.points){
+                  return b.points - a.points
+              } else if (b.hitsScored - b.hitsRecieved !== a.hitsScored - a.hitsRecieved) {
+                  return (b.hitsScored - b.hitsRecieved) - (a.hitsScored - a.hitsRecieved)
+              } else if (b.strengthOfSchedule !== a.strengthOfSchedule) {
+                  return b.strengthOfSchedule - a.strengthOfSchedule
+              } else {
+                  return b.strengthOfVictory - a.strengthOfVictory
+              }
+          });
+          let count = 1
+          updatedTable = updatedTable.map(fencer => {
+              return {
+                  ...fencer,
+                  rank: count++
               }
           })
-      })
-      if (bye) {
-          bye.points += 1
-          bye.byes += 1
-          updatedFencers.push(bye)
-          updatedTable.push(bye)
+          setFencers(updatedFencers)
+          setTable(updatedTable)
+          setBouts([])
       }
-      setBye(undefined)
-      updatedTable = updatedTable.map((fencer) => {
-          return {
-              ...fencer,
-              strengthOfSchedule: (() => {
-                  let sum = 0
-                  fencer.results.forEach((result) => {
-                      updatedTable.forEach((opponentFencer) => {
-                          if (opponentFencer.id === result.opponent) {
-                              sum += opponentFencer.points
-                          }
-                      })
-                  })
-                  return sum
-              })(),
-              strengthOfVictory: (() => {
-                  let sum = 0
-                  fencer.results.forEach((result) => {
-                      updatedTable.forEach((opponentFencer) => {
-                          if (opponentFencer.id === result.opponent && result.victory) {
-                              sum += opponentFencer.points
-                          }
-                      })
-                  })
-                  return sum
-              })()
-          }
-      })
-      updatedTable.sort(function (a, b) {
-          if (b.points !== a.points){
-              return b.points - a.points
-          } else if (b.strengthOfSchedule !== a.strengthOfSchedule) {
-              return b.strengthOfSchedule - a.strengthOfSchedule
-          } else {
-              return b.strengthOfVictory - a.strengthOfVictory
-          }
-      });
-      let count = 1
-      updatedTable = updatedTable.map(fencer => {
-          return {
-              ...fencer,
-              rank: count++
-          }
-      })
-      setFencers(updatedFencers)
-      setTable(updatedTable)
-      setBouts([])
   }
 
   const updateBout = (id: number, winner: number) => {
@@ -162,6 +216,22 @@ function App() {
               return {
                   ...bout,
                   winner: winner
+              }
+          } else {
+              return bout
+          }
+      })
+      setBouts(newBouts)
+  }
+
+  const updateBoutScore = (id: number, score1: number|undefined, score2: number|undefined) => {
+      const newBouts = bouts.map(bout => {
+          console.log(0 !== undefined)
+          if (bout.id === id) {
+              return {
+                  ...bout,
+                  score1: score1 !== undefined ? score1 : bout.score1,
+                  score2: score2 !== undefined ? score2 : bout.score2
               }
           } else {
               return bout
@@ -211,6 +281,8 @@ function App() {
                                 points: 0,
                                 rank: (fencers.length + 1),
                                 results: [],
+                                hitsScored: 0,
+                                hitsRecieved: 0,
                                 strengthOfSchedule: 0,
                                 strengthOfVictory: 0,
                                 byes: 0}
@@ -225,6 +297,8 @@ function App() {
                                 points: 0,
                                 rank: (table.length + 1),
                                 results: [],
+                                hitsScored: 0,
+                                hitsRecieved: 0,
                                 strengthOfSchedule: 0,
                                 strengthOfVictory: 0,
                                 byes: 0}
@@ -253,8 +327,11 @@ function App() {
                             <th className={"w-8"}></th>
                             <th className={"w-48"}>Name</th>
                             <th className={"w-20"}>Points</th>
-                            <th className={"w-20"}>SoS*</th>
-                            <th className={"w-20"}>SoV**</th>
+                            <th className={"w-20"}>HS</th>
+                            <th className={"w-20"}>HR</th>
+                            <th className={"w-20"}>Indicator</th>
+                            <th className={"w-20"}>SoS</th>
+                            <th className={"w-20"}>SoV</th>
                             <th></th>
                         </tr>
                         </thead>
@@ -266,11 +343,23 @@ function App() {
                                         fencer.points === 2 ? "bg-green-300" :
                                             fencer.points === 3 ? "bg-blue-400" :
                                                 fencer.points === 4 ? "bg-purple-400" : "bg-amber-300"}>
-                                <td className={"border-black border-r"} onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.rank}.</td>
-                                <td className={"pl-2"} onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.name}</td>
-                                <td className={"font-semibold text-center border-black border-l"} onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.points}</td>
-                                <td className={"text-center border-black border-l"} onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.strengthOfSchedule}</td>
-                                <td className={"text-center border-black border-l"} onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.strengthOfVictory}</td>
+                                <td className={"border-black border-r"}
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.rank}.
+                                </td>
+                                <td className={"pl-2"}
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.name}</td>
+                                <td className={"font-semibold text-center border-black border-l"}
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.points}</td>
+                                <td className={"text-center border-black border-l"}
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.hitsScored}</td>
+                                <td className={"text-center border-black border-l"}
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.hitsRecieved}</td>
+                                <td className={"text-center border-black border-l"}
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.hitsScored - fencer.hitsRecieved}</td>
+                                <td className={"text-center border-black border-l"}
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.strengthOfSchedule}</td>
+                                <td className={"text-center border-black border-l"}
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.strengthOfVictory}</td>
                                 <td className={"items-center border-black border-l"}>
                                     <a className={"hover:cursor-pointer"} onClick={() => removeFencer(fencer.id)}>
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -281,27 +370,29 @@ function App() {
                                     </a>
                                 </td>
                             </tr>
-                            {index === indexOpen && <tr className={
+                            {index === indexOpen && fencer.results.length > 0 && <tr className={
                                 fencer.points === 0 ? "bg-red-400" :
                                     fencer.points === 1 ? "bg-yellow-200" :
                                         fencer.points === 2 ? "bg-green-300" :
                                             fencer.points === 3 ? "bg-blue-400" :
                                                 fencer.points === 4 ? "bg-purple-400" : "bg-amber-300"}>
-                                <td className={"pl-2 border-black border-t"} colSpan={6}>{fencer.results.map((result) => {
-                                    return <div>vs {
+                                <td className={"pl-2 border-black border-t"}
+                                    colSpan={9}>{fencer.results.map((result) => {
+                                    return <div>{result.opponent !== -1 ? `vs ${
                                         (() => {
                                             const opponent = table.find(fencer => fencer.id === result.opponent)
                                             return opponent ? opponent.name : "[Removed]"
                                         })()
-                                        }: {result.victory ? "V": "D"}</div>
+                                    }: ${result.victory ? "V" : "D"} ${result.score}-${result.oppScore}` : "[Bye]"}</div>
                                 })}</td>
                             </tr>}
                             </tbody>
                         )))}
                     </table>
-                    <p className={"my-2 italic w-1/3 text-xs"}>* First Tiebreaker: Strength of Schedule, the sum of
+                    <p className={"my-2 italic w-1/3 text-xs"}>First Tiebreaker: Indicator, your hits scored minus hits recieved</p>
+                    <p className={"my-2 italic w-1/3 text-xs"}>Second Tiebreaker: Strength of Schedule, the sum of
                         points scored by your opponents</p>
-                    <p className={"my-2 italic w-1/3 text-xs"}>** Second Tiebreaker: Strength of Victory, the sum of
+                    <p className={"my-2 italic w-1/3 text-xs"}>Third Tiebreaker: Strength of Victory, the sum of
                         points scored by people you beat</p>
                     <button onClick={randomSeed}
                             className={"border rounded px-2 mt-2"}>{started ? "Shuffle Bouts" : "Start Round"}</button>
@@ -322,14 +413,21 @@ function App() {
                             <label htmlFor={bout.fencer1.id.toString()}
                                    className={"p-8 flex w-full rounded border border-1 peer-checked:border-black peer-checked:font-semibold"}>{bout.fencer1.name + " "}</label>
                         </div>
+                        <input type={"number"} className={"w-8 p-1 justify-items-center border border-black rounded"}
+                               min={0} id={bout.fencer1.id.toString() + "_score"} style={{marginRight: '4px'}} required value={bout.score1} onInput={(event) => updateBoutScore(bout.id, event.currentTarget.valueAsNumber, undefined)}/>
                         vs
+                        <input type={"number"} className={"w-8 p-1 justify-items-center border border-black rounded ml-8"}
+                               min={0} id={bout.fencer2.id.toString() + "_score"} style={{marginLeft: '4px'}} required value={bout.score2}  onInput={(event) => updateBoutScore(bout.id, undefined, event.currentTarget.valueAsNumber)}/>
                         <div className={"inline-block w-1/3 ml-4"}>
-                            <input className={"peer hidden"} type='radio' value={bout.fencer2.id} id={bout.fencer2.id.toString()} name={bout.id.toString()} onClick={() => updateBout(bout.id, bout.fencer2.id)}></input>
-                            <label htmlFor={bout.fencer2.id.toString()} className={"p-8 flex w-full rounded border border-1 peer-checked:border-black peer-checked:font-semibold"}>{" " + bout.fencer2.name}</label>
+                            <input className={"peer hidden"} type='radio' value={bout.fencer2.id}
+                                   id={bout.fencer2.id.toString()} name={bout.id.toString()}
+                                   onClick={() => updateBout(bout.id, bout.fencer2.id)}></input>
+                            <label htmlFor={bout.fencer2.id.toString()}
+                                   className={"p-8 flex w-full rounded border border-1 peer-checked:border-black peer-checked:font-semibold"}>{" " + bout.fencer2.name}</label>
                         </div>
                     </div>
                 ))}
-                {started && bye ? <p>Bye: {bye.name}</p>: ""}
+                {started && bye ? <p>Bye: {bye.name}</p> : ""}
                 {started ? <button type={"submit"} className={"border rounded px-2 mt-2"}>End Round</button> : ""}
             </form>
         </div>
