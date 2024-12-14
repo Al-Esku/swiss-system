@@ -15,6 +15,7 @@ function App() {
   const [indexOpen, setIndexOpen] = React.useState(-1)
 
   const randomSeed = () => {
+      setBye(undefined)
       if (fencers.length >= 2) {
           let optimal: individual = {bouts: [], cost: Infinity, bye:undefined}
           for (let i = 0; i <= 10000; i++) {
@@ -27,9 +28,9 @@ function App() {
               newFencers.sort(function (a, b) {
                   return b.seed - a.seed
               });
-              let bye
+              let newBye
               if (newFencers.length % 2 !== 0) {
-                  bye = newFencers.pop()
+                  newBye = newFencers.pop()
               }
               if (i < 1000) {
                   newFencers.sort(function (a, b) {
@@ -47,7 +48,7 @@ function App() {
                       cost: newFencers[i].results.some(result => result.opponent === newFencers[i+1].id) ? Math.abs(newFencers[i].points - newFencers[i+1].points) > 1 ? Math.abs(newFencers[i].points - newFencers[i+1].points) + 0.5 : 1.5 : Math.abs(newFencers[i].points - newFencers[i+1].points)})
               }
               let cost = 0
-              if (bye && Math.floor( (rounds - 1) / fencers.length) !== bye.byes) {
+              if (newBye && Math.floor( (rounds - 1) / fencers.length) !== newBye.byes) {
                   cost += 1000
               }
               newBouts.forEach((bout) => {
@@ -56,8 +57,8 @@ function App() {
               if (cost < optimal.cost) {
                   optimal.bouts = newBouts
                   optimal.cost = cost
-                  if (bye) {
-                      optimal.bye = bye
+                  if (newBye) {
+                      optimal.bye = newBye
                   }
               }
           }
