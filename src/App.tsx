@@ -19,7 +19,8 @@ function App() {
       if (fencers.length >= 2) {
           let optimal: individual = {bouts: [], cost: Infinity, bye:undefined}
           for (let i = 0; i <= 10000; i++) {
-              let newFencers = fencers.map(fencer => {
+              let newFencers = fencers.filter(fencer => !fencer.removed)
+              newFencers = newFencers.map(fencer => {
                   return {
                       ...fencer,
                       seed: Math.random()
@@ -146,6 +147,11 @@ function App() {
               }
           }
           setBye(undefined)
+          table.forEach(fencer => {
+              if (fencer.removed) {
+                  updatedTable.push(fencer)
+              }
+          })
           updatedTable = updatedTable.map((fencer) => {
               return {
                   ...fencer,
@@ -242,15 +248,33 @@ function App() {
   }
 
   const removeFencer = (id: number) => {
-      let newFencers = fencers.filter(fencer => fencer.id !== id)
-      let newTable = table.filter(fencer => fencer.id !== id)
-      let count = 1
+      let newFencers = fencers.map(fencer => {
+          if (fencer.id !== id) {
+              return fencer
+          } else {
+              return {
+                  ...fencer,
+                  removed: true
+              }
+          }
+      })
+      let newTable = table.map(fencer => {
+          if (fencer.id !== id) {
+              return fencer
+          } else {
+              return {
+                  ...fencer,
+                  removed: true
+              }
+          }
+      })
+      /*let count = 1
       newTable = newTable.map(fencer => {
           return {
               ...fencer,
               rank: count++
           }
-      })
+      })*/
       setFencers(newFencers)
       setTable(newTable)
   }
@@ -266,6 +290,15 @@ function App() {
       setFencers(newFencers)
   }
 
+  const getColour = (fencer: fencer) => {
+      return (fencer.removed ? "opacity-60 " : "") +
+          (fencer.points === 0 ? "bg-red-400" :
+              fencer.points === 1 ? "bg-yellow-200" :
+                  fencer.points === 2 ? "bg-green-300" :
+                      fencer.points === 3 ? "bg-blue-400" :
+                          fencer.points === 4 ? "bg-purple-400" : "bg-amber-300")
+  }
+
   return (
     <div className={"grid grid-cols-2"}>
 
@@ -276,7 +309,8 @@ function App() {
                     setFencers(
                         [
                             ...fencers,
-                            {id: nextFencerId,
+                            {
+                                id: nextFencerId,
                                 name: name,
                                 seed: 0,
                                 points: 0,
@@ -286,13 +320,16 @@ function App() {
                                 hitsRecieved: 0,
                                 strengthOfSchedule: 0,
                                 strengthOfVictory: 0,
-                                byes: 0}
+                                byes: 0,
+                                removed: false
+                            }
                         ]
                     );
                     setTable(
                         [
                             ...table,
-                            {id: nextFencerId++,
+                            {
+                                id: nextFencerId++,
                                 name: name,
                                 seed: 0,
                                 points: 0,
@@ -302,7 +339,9 @@ function App() {
                                 hitsRecieved: 0,
                                 strengthOfSchedule: 0,
                                 strengthOfVictory: 0,
-                                byes: 0}
+                                byes: 0,
+                                removed: false
+                            }
                         ]
                     );
                     setName("");
@@ -337,46 +376,50 @@ function App() {
                         </tr>
                         </thead>
                         {table.map(((fencer, index) => (
-                            <tbody className={"border border-black m-2"}>
-                            <tr className={
-                                fencer.points === 0 ? "bg-red-400" :
-                                    fencer.points === 1 ? "bg-yellow-200" :
-                                        fencer.points === 2 ? "bg-green-300" :
-                                            fencer.points === 3 ? "bg-blue-400" :
-                                                fencer.points === 4 ? "bg-purple-400" : "bg-amber-300"}>
-                                <td className={"border-black border-r"}
-                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.rank}.
+                            <tbody className={"border border-black m-0 bg-gray-500 p-0"}>
+                            <tr className={"m-0"}>
+                                <td className={"border-black border-r p-0"}
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}><div className={getColour(fencer)}>{fencer.rank}.</div>
                                 </td>
-                                <td className={"pl-2"}
-                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.name}</td>
-                                <td className={"font-semibold text-center border-black border-l"}
-                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.points}</td>
-                                <td className={"text-center border-black border-l"}
-                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.hitsScored}</td>
-                                <td className={"text-center border-black border-l"}
-                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.hitsRecieved}</td>
-                                <td className={"text-center border-black border-l"}
-                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.hitsScored - fencer.hitsRecieved}</td>
-                                <td className={"text-center border-black border-l"}
-                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.strengthOfSchedule}</td>
-                                <td className={"text-center border-black border-l"}
-                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>{fencer.strengthOfVictory}</td>
-                                <td className={"items-center border-black border-l"}>
-                                    <a className={"hover:cursor-pointer"} onClick={() => removeFencer(fencer.id)}>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                             strokeWidth={1.5} stroke="red" className="w-6 h-6">
-                                            <path strokeLinecap="round" strokeLinejoin="round"
-                                                  d="M6 18L18 6M6 6l12 12"/>
-                                        </svg>
-                                    </a>
+                                <td className={" p-0"}
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}><div className={getColour(fencer) + " pl-2 w-full"}>{fencer.name}</div></td>
+                                <td className={"font-semibold text-center border-black border-l p-0"}
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}><div className={getColour(fencer)}>{fencer.points}</div>
+                                </td>
+                                <td className={"text-center border-black border-l p-0"}
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}><div className={getColour(fencer)}>{fencer.hitsScored}</div>
+                                </td>
+                                <td className={"text-center border-black border-l p-0"}
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}><div className={getColour(fencer)}>{fencer.hitsRecieved}</div>
+                                </td>
+                                <td className={"text-center border-black border-l p-0"}
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}><div className={getColour(fencer)}>{fencer.hitsScored - fencer.hitsRecieved}</div>
+                                </td>
+                                <td className={"text-center border-black border-l p-0"}
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}><div className={getColour(fencer)}>{fencer.strengthOfSchedule}</div>
+                                </td>
+                                <td className={"text-center border-black border-l p-0"}
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}><div className={getColour(fencer)}>{fencer.strengthOfVictory}</div>
+                                </td>
+                                <td className={"items-center border-black border-l p-0"}>
+                                    <div className={getColour(fencer) + " w-6 h-6"}>
+                                        {!fencer.removed &&
+                                        <a className={"hover:cursor-pointer"} onClick={() => removeFencer(fencer.id)}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                 strokeWidth={1.5} stroke="red" className="w-6 h-6">
+                                                <path strokeLinecap="round" strokeLinejoin="round"
+                                                      d="M6 18L18 6M6 6l12 12"/>
+                                            </svg>
+                                        </a>}
+                                    </div>
                                 </td>
                             </tr>
-                            {index === indexOpen && fencer.results.length > 0 && <tr className={
-                                fencer.points === 0 ? "bg-red-400" :
+                            {index === indexOpen && fencer.results.length > 0 && <tr className={(fencer.removed ? "opacity-60 " : "") +
+                                (fencer.points === 0 ? "bg-red-400" :
                                     fencer.points === 1 ? "bg-yellow-200" :
                                         fencer.points === 2 ? "bg-green-300" :
                                             fencer.points === 3 ? "bg-blue-400" :
-                                                fencer.points === 4 ? "bg-purple-400" : "bg-amber-300"}>
+                                                fencer.points === 4 ? "bg-purple-400" : "bg-amber-300")}>
                                 <td className={"pl-2 border-black border-t"}
                                     colSpan={9}>{fencer.results.map((result) => {
                                     return <div>{result.opponent !== -1 ? `vs ${

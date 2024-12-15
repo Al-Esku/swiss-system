@@ -9,7 +9,8 @@ type fencer = {
     hitsRecieved: number,
     strengthOfSchedule: number,
     strengthOfVictory: number,
-    byes: number
+    byes: number,
+    removed: boolean
 }
 
 type bout = {
