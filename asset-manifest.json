@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/swiss-system/static/css/main.312e6bcf.css",
-    "main.js": "/swiss-system/static/js/main.9c09f7df.js",
+    "main.css": "/swiss-system/static/css/main.756de47a.css",
+    "main.js": "/swiss-system/static/js/main.014c44c9.js",
     "static/js/787.0cab3aa4.chunk.js": "/swiss-system/static/js/787.0cab3aa4.chunk.js",
     "index.html": "/swiss-system/index.html",
-    "main.312e6bcf.css.map": "/swiss-system/static/css/main.312e6bcf.css.map",
-    "main.9c09f7df.js.map": "/swiss-system/static/js/main.9c09f7df.js.map",
+    "main.756de47a.css.map": "/swiss-system/static/css/main.756de47a.css.map",
+    "main.014c44c9.js.map": "/swiss-system/static/js/main.014c44c9.js.map",
     "787.0cab3aa4.chunk.js.map": "/swiss-system/static/js/787.0cab3aa4.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.312e6bcf.css",
-    "static/js/main.9c09f7df.js"
+    "static/css/main.756de47a.css",
+    "static/js/main.014c44c9.js"
   ]
 }
