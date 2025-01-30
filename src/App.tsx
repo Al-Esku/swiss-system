@@ -13,6 +13,15 @@ function App() {
   const [rounds, setRounds] = React.useState(1)
   const [started, setStarted] = React.useState(false)
   const [indexOpen, setIndexOpen] = React.useState(-1)
+  const [printTarget, setPrintTarget] = React.useState<string | null>(null)
+
+  const print = (id: string) => {
+      setPrintTarget(id)
+      setTimeout(() => {
+          window.print()
+          setPrintTarget(null)
+      }, 100)
+  }
 
   const randomSeed = () => {
       setBye(undefined)
@@ -347,7 +356,7 @@ function App() {
                     setName("");
                 }
             }}>
-                <div className={"w-full"}>
+                <div className={"w-full print:hidden"}>
                     <input
                         type={"text"}
                         className={"border rounded w-1/2"}
@@ -356,12 +365,13 @@ function App() {
                             setName(e.target.value)}
                         }
                     />
-                    <button type={"submit"} className={"border rounded px-2 ml-2"}>Add</button>
+                    <button type={"submit"} className={"border rounded px-2 ml-2 print:hidden"}>Add</button>
                 </div>
             </form>
             {table.length > 0 ?
                 <>
-                    <table className={"mt-8"}>
+                    <table className={"mt-8" + (printTarget === "table" ? " print-visible" : " print:hidden")}
+                           id={"table"}>
                         <thead>
                         <tr>
                             <th className={"w-8"}></th>
@@ -372,85 +382,106 @@ function App() {
                             <th className={"w-20"}>Indicator</th>
                             <th className={"w-20"}>SoS</th>
                             <th className={"w-20"}>SoV</th>
-                            <th></th>
+                            <th className={""}></th>
                         </tr>
                         </thead>
                         {table.map(((fencer, index) => (
-                            <tbody className={"border border-black m-0 bg-gray-500 p-0"}>
+                            <tbody className={"border border-black border-solid m-0 bg-gray-500 p-0"}>
                             <tr className={"m-0"}>
                                 <td className={"border-black border-r p-0"}
-                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}><div className={getColour(fencer)}>{fencer.rank}.</div>
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
+                                    <div className={getColour(fencer)}>{fencer.rank}.</div>
                                 </td>
                                 <td className={" p-0"}
-                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}><div className={getColour(fencer) + " pl-2 w-full"}>{fencer.name}</div></td>
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
+                                    <div className={getColour(fencer) + " pl-2 w-full"}>{fencer.name}</div>
+                                </td>
                                 <td className={"font-semibold text-center border-black border-l p-0"}
-                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}><div className={getColour(fencer)}>{fencer.points}</div>
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
+                                    <div className={getColour(fencer)}>{fencer.points}</div>
                                 </td>
                                 <td className={"text-center border-black border-l p-0"}
-                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}><div className={getColour(fencer)}>{fencer.hitsScored}</div>
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
+                                    <div className={getColour(fencer)}>{fencer.hitsScored}</div>
                                 </td>
                                 <td className={"text-center border-black border-l p-0"}
-                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}><div className={getColour(fencer)}>{fencer.hitsRecieved}</div>
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
+                                    <div className={getColour(fencer)}>{fencer.hitsRecieved}</div>
                                 </td>
                                 <td className={"text-center border-black border-l p-0"}
-                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}><div className={getColour(fencer)}>{fencer.hitsScored - fencer.hitsRecieved}</div>
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
+                                    <div className={getColour(fencer)}>{fencer.hitsScored - fencer.hitsRecieved}</div>
                                 </td>
                                 <td className={"text-center border-black border-l p-0"}
-                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}><div className={getColour(fencer)}>{fencer.strengthOfSchedule}</div>
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
+                                    <div className={getColour(fencer)}>{fencer.strengthOfSchedule}</div>
                                 </td>
                                 <td className={"text-center border-black border-l p-0"}
-                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}><div className={getColour(fencer)}>{fencer.strengthOfVictory}</div>
+                                    onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
+                                    <div className={getColour(fencer)}>{fencer.strengthOfVictory}</div>
                                 </td>
-                                <td className={"items-center border-black border-l p-0"}>
+                                <td className={"items-center border-black border-l p-0 print:hidden print:border-0"}>
                                     <div className={getColour(fencer) + " w-6 h-6"}>
                                         {!fencer.removed &&
-                                        <a className={"hover:cursor-pointer"} onClick={() => removeFencer(fencer.id)}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                 strokeWidth={1.5} stroke="red" className="w-6 h-6">
-                                                <path strokeLinecap="round" strokeLinejoin="round"
-                                                      d="M6 18L18 6M6 6l12 12"/>
-                                            </svg>
-                                        </a>}
+                                            <a className={"hover:cursor-pointer"}
+                                               onClick={() => removeFencer(fencer.id)}>
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                     strokeWidth={1.5} stroke="red" className="w-6 h-6">
+                                                    <path strokeLinecap="round" strokeLinejoin="round"
+                                                          d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                            </a>}
                                     </div>
                                 </td>
                             </tr>
-                            {index === indexOpen && fencer.results.length > 0 && <tr className={(fencer.removed ? "opacity-60 " : "") +
-                                (fencer.points === 0 ? "bg-red-400" :
-                                    fencer.points === 1 ? "bg-yellow-200" :
-                                        fencer.points === 2 ? "bg-green-300" :
-                                            fencer.points === 3 ? "bg-blue-400" :
-                                                fencer.points === 4 ? "bg-purple-400" : "bg-amber-300")}>
-                                <td className={"pl-2 border-black border-t"}
-                                    colSpan={9}>{fencer.results.map((result) => {
-                                    return <div>{result.opponent !== -1 ? `vs ${
-                                        (() => {
-                                            const opponent = table.find(fencer => fencer.id === result.opponent)
-                                            return opponent ? opponent.name : "[Removed]"
-                                        })()
-                                    }: ${result.victory ? "V" : "D"} ${result.score}-${result.oppScore}` : "[Bye]"}</div>
-                                })}</td>
-                            </tr>}
+                            {index === indexOpen && fencer.results.length > 0 &&
+                                <tr className={(fencer.removed ? "opacity-60 " : "") +
+                                    (fencer.points === 0 ? "bg-red-400" :
+                                        fencer.points === 1 ? "bg-yellow-200" :
+                                            fencer.points === 2 ? "bg-green-300" :
+                                                fencer.points === 3 ? "bg-blue-400" :
+                                                    fencer.points === 4 ? "bg-purple-400" : "bg-amber-300")}>
+                                    <td className={"pl-2 border-black border-t"}
+                                        colSpan={9}>{fencer.results.map((result) => {
+                                        return <div>{result.opponent !== -1 ? `vs ${
+                                            (() => {
+                                                const opponent = table.find(fencer => fencer.id === result.opponent)
+                                                return opponent ? opponent.name : "[Removed]"
+                                            })()
+                                        }: ${result.victory ? "V" : "D"} ${result.score}-${result.oppScore}` : "[Bye]"}</div>
+                                    })}</td>
+                                </tr>}
                             </tbody>
                         )))}
                     </table>
-                    <p className={"my-2 italic w-1/3 text-xs"}>First Tiebreaker: Indicator, your hits scored minus hits recieved</p>
-                    <p className={"my-2 italic w-1/3 text-xs"}>Second Tiebreaker: Strength of Schedule, the sum of
+                    <p className={"my-2 italic w-1/3 text-xs print:hidden"}>First Tiebreaker: Indicator, your hits
+                        scored minus hits recieved</p>
+                    <p className={"my-2 italic w-1/3 text-xs print:hidden"}>Second Tiebreaker: Strength of Schedule, the
+                        sum of
                         points scored by your opponents</p>
-                    <p className={"my-2 italic w-1/3 text-xs"}>Third Tiebreaker: Strength of Victory, the sum of
+                    <p className={"my-2 italic w-1/3 text-xs print:hidden"}>Third Tiebreaker: Strength of Victory, the
+                        sum of
                         points scored by people you beat</p>
+                    <button onClick={() => print("table")} className={"border rounded px-1 mt-2 print:hidden flex"}>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
+                             stroke="currentColor" className="size-6 w-4 h-4 mt-auto mb-auto">
+                            <path strokeLinecap="round" strokeLinejoin="round"
+                                  d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/>
+                        </svg>
+                        <span className={"ml-1 mb-0.5"}>Print Table</span></button>
                     <button onClick={randomSeed}
-                            className={"border rounded px-2 mt-2"}>{started ? "Shuffle Bouts" : "Start Round"}</button>
+                            className={"border rounded px-2 mt-6 print:hidden"}>{started ? "Shuffle Bouts" : "Start Round"}</button>
                     <button onClick={resetPairings}
-                            className={"border rounded px-2 mt-2 ml-2"}>Reset Pairings
+                            className={"border rounded px-2 mt-2 ml-2 print:hidden"}>Reset Pairings
                     </button>
                 </> : ""}
         </div>
-        <div>
-            {started ? <p className={"mt-8 font-semibold"}>Round {rounds} Bouts</p> : ""}
-            <form id={"roundForm"} onSubmit={endRound} className={"m-2"}>
+        <div className={printTarget === "bouts" ? "print-visible" : "print:hidden"}>
+            {started ? <p className={"mt-8 font-semibold "}>Round {rounds} Bouts</p> : ""}
+            <form id={"roundForm"} onSubmit={endRound} className={"m-2 "}>
                 {bouts.map(bout => (
-                    <div className={"p-4"}>
-                        <div className={"inline-block w-1/3 mr-4"}>
+                    <div className={"p-4 print:w-full"}>
+                        <div className={"inline-block w-1/3 mr-4 print:w-2/5"}>
                             <input className={"peer hidden"} type='radio' value={bout.fencer1.id}
                                    id={bout.fencer1.id.toString()} name={bout.id.toString()} required
                                    onClick={() => updateBout(bout.id, bout.fencer1.id)}></input>
@@ -462,7 +493,7 @@ function App() {
                         vs
                         <input type={"number"} className={"w-8 p-1 justify-items-center border border-black rounded ml-8"}
                                min={0} id={bout.fencer2.id.toString() + "_score"} style={{marginLeft: '4px'}} required value={bout.score2}  onInput={(event) => updateBoutScore(bout.id, undefined, event.currentTarget.valueAsNumber)}/>
-                        <div className={"inline-block w-1/3 ml-4"}>
+                        <div className={"inline-block w-1/3 ml-4 print:w-2/5"}>
                             <input className={"peer hidden"} type='radio' value={bout.fencer2.id}
                                    id={bout.fencer2.id.toString()} name={bout.id.toString()}
                                    onClick={() => updateBout(bout.id, bout.fencer2.id)}></input>
@@ -472,7 +503,11 @@ function App() {
                     </div>
                 ))}
                 {started && bye ? <p>Bye: {bye.name}</p> : ""}
-                {started ? <button type={"submit"} className={"border rounded px-2 mt-2"}>End Round</button> : ""}
+                {started ? <button onClick={() => print("bouts")} className={"border rounded px-1 mt-2 print:hidden flex"}><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 w-4 h-4 mt-auto mb-auto">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
+                </svg>
+                    <span className={"ml-1 mb-0.5"}>Print Bouts</span></button> : ""}
+                {started ? <button type={"submit"} className={"border rounded px-2 mt-6 print:hidden"}>End Round</button> : ""}
             </form>
         </div>
     </div>
