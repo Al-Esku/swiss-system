@@ -562,7 +562,7 @@ function App() {
         <div className={printTarget === "bouts" ? "print-visible" : "print:hidden"}>
             {started ? <p className={"mt-8 font-semibold "}>Round {rounds} Bouts</p> : ""}
             <form id={"roundForm"} onSubmit={endRound} className={"m-2 "}>
-                {rounds > 0 && bouts[rounds - 1].map(bout => (
+                {started && rounds > 0 && bouts[rounds - 1].map(bout => (
                     <div className={"p-4 print:w-full"}>
                         <div className={"inline-block w-1/3 mr-4 print:w-2/5"}>
                             <input className={"peer hidden"} type='radio' value={bout.fencer1.id}
