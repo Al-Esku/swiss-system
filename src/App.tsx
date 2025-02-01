@@ -567,7 +567,7 @@ function App() {
                         <div className={"inline-block w-1/3 mr-4 print:w-2/5"}>
                             <input className={"peer hidden"} type='radio' value={bout.fencer1.id}
                                    id={bout.fencer1.id.toString()} name={bout.id.toString()} required
-                                   onClick={() => updateBout(bout.id, bout.fencer1.id)}></input>
+                                   onClick={() => updateBout(bout.id, bout.fencer1.id)} checked={bout.winner === bout.fencer1.id}></input>
                             <label htmlFor={bout.fencer1.id.toString()}
                                    className={"p-8 flex w-full rounded border-2 peer-checked:border-green-600 peer-checked:border-[3px] peer-checked:font-semibold peer-checked:text-green-800 " + (bout.winner !== bout.fencer1.id && bout.winner !== -1 ? "text-red-700 border-red-600" : "")}>{bout.fencer1.name + " "}</label>
                         </div>
@@ -579,7 +579,7 @@ function App() {
                         <div className={"inline-block w-1/3 ml-4 print:w-2/5"}>
                             <input className={"peer hidden"} type='radio' value={bout.fencer2.id}
                                    id={bout.fencer2.id.toString()} name={bout.id.toString()}
-                                   onClick={() => updateBout(bout.id, bout.fencer2.id)}></input>
+                                   onClick={() => updateBout(bout.id, bout.fencer2.id)} checked={bout.winner === bout.fencer2.id}></input>
                             <label htmlFor={bout.fencer2.id.toString()}
                                    className={"p-8 flex w-full rounded border-2 peer-checked:border-green-600 peer-checked:border-[3px] peer-checked:font-semibold peer-checked:text-green-800 " + (bout.winner !== bout.fencer2.id && bout.winner !== -1 ? "text-red-700 border-red-600" : "")}>{" " + bout.fencer2.name}</label>
                         </div>
