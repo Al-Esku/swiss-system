@@ -444,8 +444,8 @@ function App() {
                 </div>
             </form>
             {table.length > 0 ?
-                <>
-                    <table className={"mt-8" + (printTarget === "table" ? " print-visible" : " print:hidden")}
+                <div className={printTarget === "table" ? " print-visible" : " print:hidden"}>
+                    <table className={"mt-8"}
                            id={"table"}>
                         <thead>
                         <tr>
@@ -529,12 +529,12 @@ function App() {
                             </tbody>
                         )))}
                     </table>
-                    <p className={"my-2 italic w-1/3 text-xs print:hidden"}>First Tiebreaker: Indicator, your hits
+                    <p className={"my-2 italic w-1/3 text-xs"}>First Tiebreaker: Indicator, your hits
                         scored minus hits recieved</p>
-                    <p className={"my-2 italic w-1/3 text-xs print:hidden"}>Second Tiebreaker: Strength of Schedule, the
+                    <p className={"my-2 italic w-1/3 text-xs"}>Second Tiebreaker: Strength of Schedule, the
                         sum of
                         points scored by your opponents</p>
-                    <p className={"my-2 italic w-1/3 text-xs print:hidden"}>Third Tiebreaker: Strength of Victory, the
+                    <p className={"my-2 italic w-1/3 text-xs"}>Third Tiebreaker: Strength of Victory, the
                         sum of
                         points scored by people you beat</p>
                     <div className={"flex"}>
@@ -557,7 +557,7 @@ function App() {
                     <button onClick={resetPairings}
                             className={"border rounded px-2 mt-2 ml-2 print:hidden"}>Reset Pairings
                     </button>
-                </> : ""}
+                </div> : ""}
         </div>
         <div className={"max-lg:ml-8 " + (printTarget === "bouts" ? "print-visible" : "print:hidden")}>
             {started ? <p className={"mt-8 font-semibold "}>Round {rounds} Bouts</p> : ""}
