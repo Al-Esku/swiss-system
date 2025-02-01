@@ -75,14 +75,14 @@ function App() {
 
   const randomSeed = () => {
       setBye(undefined)
-      let round: number
-      if (!started) {
-          round = rounds + 1
-          setRounds(current => current+1)
-      } else {
-          round = rounds
-      }
       if (fencers.length >= 2) {
+          let round: number
+          if (!started) {
+              round = rounds + 1
+              setRounds(current => current+1)
+          } else {
+              round = rounds
+          }
           let optimal: individual = {bouts: [], cost: Infinity, bye:undefined}
           for (let i = 0; i <= 10000; i++) {
               let newFencers = fencers.filter(fencer => !fencer.removed)
