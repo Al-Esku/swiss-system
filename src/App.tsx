@@ -384,7 +384,7 @@ function App() {
   }
 
   return (
-    <div className={"grid grid-cols-2"}>
+    <div className={"grid lg:grid-cols-2"}>
 
         <div className={"m-8"}>
             <form onSubmit={(event) => {
@@ -465,7 +465,7 @@ function App() {
                             <tr className={"m-0"}>
                                 <td className={"border-black border-r p-0"}
                                     onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
-                                    <div className={getColour(fencer)}>{fencer.rank}.</div>
+                                    <div className={getColour(fencer) + " flex justify-center"}>{fencer.rank}.</div>
                                 </td>
                                 <td className={" p-0"}
                                     onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
@@ -559,7 +559,7 @@ function App() {
                     </button>
                 </> : ""}
         </div>
-        <div className={printTarget === "bouts" ? "print-visible" : "print:hidden"}>
+        <div className={"max-lg:ml-8 " + (printTarget === "bouts" ? "print-visible" : "print:hidden")}>
             {started ? <p className={"mt-8 font-semibold "}>Round {rounds} Bouts</p> : ""}
             <form id={"roundForm"} onSubmit={endRound} className={"m-2 "}>
                 {started && rounds > 0 && bouts[rounds - 1].map(bout => (
