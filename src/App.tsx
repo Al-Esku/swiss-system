@@ -30,7 +30,7 @@ function App() {
         <CompetitionIndividuelle ID="Swiss" Date="${date.getDate().toString().padStart(2, "0")}.${(date.getMonth()+1).toString().padStart(2, "0")}.${date.getFullYear()}">
             <Tireurs>
                 ${table.map(fencer => {
-                    return `<Tireur ID="${fencer.id}" Nom="${fencer.name}" Prenom="${fencer.name}" Sexe="M" Lateralite="D" Nation="NZL" Club="Piwakawaka Fencing" Classement="${fencer.rank}" Statut="N"></Tireur>`
+                    return `<Tireur ID="${fencer.id+1}" Nom="${fencer.name}" Prenom="${fencer.name}" Sexe="M" Lateralite="D" Nation="NZL" Club="Piwakawaka Fencing" Classement="${fencer.rank}" Statut="N"></Tireur>`
                 }).join(" ")}
             </Tireurs>
             <Phases>
@@ -39,16 +39,16 @@ function App() {
                         return `
                             <TourDePoules PhaseID="TourPoules${index+1}" ID="${index+1}" NbDePoules="${boutArray.length}">
                                 ${table.map(fencer => {
-                                return `<Tireur REF="${fencer.id}" RangInitial="${fencer.id + 1}" RangFinal="${fencer.rank}" Statut="Q"></Tireur>`
+                                return `<Tireur REF="${fencer.id+1}" RangInitial="${fencer.id + 1}" RangFinal="${fencer.rank}" Statut="Q"></Tireur>`
                             }).join(" ")}
                                 ${boutArray.map((bout, boutIndex) => {
                                 return `
                                         <Poule ID="${boutIndex + 1}">
-                                            <Tireur REF="${bout.fencer1.id}" NoDansLaPoule="1" NbVictoires="${bout.winner === bout.fencer1.id ? 1 : 0}" NbMatches="1" TD="${bout.score1}" TR="${bout.score2}"></Tireur>
-                                            <Tireur REF="${bout.fencer2.id}" NoDansLaPoule="1" NbVictoires="${bout.winner === bout.fencer2.id ? 1 : 0}" NbMatches="1" TD="${bout.score2}" TR="${bout.score1}"></Tireur>
+                                            <Tireur REF="${bout.fencer1.id+1}" NoDansLaPoule="1" NbVictoires="${bout.winner === bout.fencer1.id ? 1 : 0}" NbMatches="1" TD="${bout.score1}" TR="${bout.score2}"></Tireur>
+                                            <Tireur REF="${bout.fencer2.id+1}" NoDansLaPoule="1" NbVictoires="${bout.winner === bout.fencer2.id ? 1 : 0}" NbMatches="1" TD="${bout.score2}" TR="${bout.score1}"></Tireur>
                                             <Match ID="1">
-                                                <Tireur REF="${bout.fencer1.id}" Score="${bout.score1}" Statut="${bout.winner === bout.fencer1.id ? "V": "D"}"></Tireur>
-                                                <Tireur REF="${bout.fencer2.id}" Score="${bout.score2}" Statut="${bout.winner === bout.fencer2.id ? "V": "D"}"></Tireur>
+                                                <Tireur REF="${bout.fencer1.id+1}" Score="${bout.score1}" Statut="${bout.winner === bout.fencer1.id ? "V": "D"}"></Tireur>
+                                                <Tireur REF="${bout.fencer2.id+1}" Score="${bout.score2}" Statut="${bout.winner === bout.fencer2.id ? "V": "D"}"></Tireur>
                                             </Match>
                                         </Poule>
                                     `
