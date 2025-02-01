@@ -111,7 +111,7 @@ function App() {
                       fencer2:newFencers[i+1],
                       score1:undefined,
                       score2:undefined,
-                      winner:0,
+                      winner:-1,
                       cost: newFencers[i].results.some(result => result.opponent === newFencers[i+1].id) ? Math.abs(newFencers[i].points - newFencers[i+1].points) > 1 ? Math.abs(newFencers[i].points - newFencers[i+1].points) + 0.5 : 1.5 : Math.abs(newFencers[i].points - newFencers[i+1].points)})
               }
               let cost = 0
@@ -569,19 +569,19 @@ function App() {
                                    id={bout.fencer1.id.toString()} name={bout.id.toString()} required
                                    onClick={() => updateBout(bout.id, bout.fencer1.id)}></input>
                             <label htmlFor={bout.fencer1.id.toString()}
-                                   className={"p-8 flex w-full rounded border border-1 peer-checked:border-black peer-checked:font-semibold"}>{bout.fencer1.name + " "}</label>
+                                   className={"p-8 flex w-full rounded border-2 peer-checked:border-green-600 peer-checked:font-semibold peer-checked:text-green-600 " + (bout.winner !== bout.fencer1.id && bout.winner !== -1 ? "text-red-600 border-red-600" : "")}>{bout.fencer1.name + " "}</label>
                         </div>
-                        <input type={"number"} className={"w-8 p-1 justify-items-center border border-black rounded"}
+                        <input type={"number"} className={"w-8 p-1 justify-items-center border-2 border-black rounded " + (bout.winner !== -1 ? bout.winner === bout.fencer1.id ? "text-green-600 border-green-600" : "text-red-600 border-red-600" : "")}
                                min={0} id={bout.fencer1.id.toString() + "_score"} style={{marginRight: '4px'}} required value={bout.score1} onInput={(event) => updateBoutScore(bout.id, event.currentTarget.valueAsNumber, undefined)}/>
                         vs
-                        <input type={"number"} className={"w-8 p-1 justify-items-center border border-black rounded ml-8"}
+                        <input type={"number"} className={"w-8 p-1 justify-items-center border-2 border-black rounded ml-8 " + (bout.winner !== -1 ? bout.winner === bout.fencer2.id ? "text-green-600 border-green-600" : "text-red-600 border-red-600" : "")}
                                min={0} id={bout.fencer2.id.toString() + "_score"} style={{marginLeft: '4px'}} required value={bout.score2}  onInput={(event) => updateBoutScore(bout.id, undefined, event.currentTarget.valueAsNumber)}/>
                         <div className={"inline-block w-1/3 ml-4 print:w-2/5"}>
                             <input className={"peer hidden"} type='radio' value={bout.fencer2.id}
                                    id={bout.fencer2.id.toString()} name={bout.id.toString()}
                                    onClick={() => updateBout(bout.id, bout.fencer2.id)}></input>
                             <label htmlFor={bout.fencer2.id.toString()}
-                                   className={"p-8 flex w-full rounded border border-1 peer-checked:border-black peer-checked:font-semibold"}>{" " + bout.fencer2.name}</label>
+                                   className={"p-8 flex w-full rounded border-2 peer-checked:border-green-600 peer-checked:font-semibold peer-checked:text-green-600 " + (bout.winner !== bout.fencer2.id && bout.winner !== -1 ? "text-red-600 border-red-600" : "")}>{" " + bout.fencer2.name}</label>
                         </div>
                     </div>
                 ))}
