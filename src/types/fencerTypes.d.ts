@@ -1,6 +1,8 @@
 type fencer = {
     id: number,
-    name: string,
+    firstName: string,
+    lastName: string,
+    gender: string,
     seed: number,
     points: number,
     rank: number,
@@ -34,4 +36,10 @@ type individual = {
     bouts: bout[],
     bye: undefined|fencer,
     cost: number
+}
+
+type fencerForm = {
+    firstName: string,
+    lastName: string,
+    gender: string
 }

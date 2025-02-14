@@ -1,11 +1,12 @@
 import React, {FormEvent} from 'react';
 import './App.css';
+import * as Dialog from "@radix-ui/react-dialog";
 
 let nextFencerId = 0;
 let nextBoutId = 0;
 
 function App() {
-  const [name, setName] = React.useState('')
+  const [fencerForm, setFencerForm] = React.useState<fencerForm>({firstName: "", lastName: "", gender: "M"})
   const [table, setTable] = React.useState<fencer[]>([])
   const [fencers, setFencers] = React.useState<fencer[]>([])
   const [bye, setBye] = React.useState<fencer>()
@@ -30,7 +31,7 @@ function App() {
         <CompetitionIndividuelle ID="Swiss" Date="${date.getDate().toString().padStart(2, "0")}.${(date.getMonth()+1).toString().padStart(2, "0")}.${date.getFullYear()}">
             <Tireurs>
                 ${table.map(fencer => {
-                    return `<Tireur ID="${fencer.id+1}" Nom="${fencer.name}" Prenom="${fencer.name}" Sexe="M" Lateralite="D" Nation="NZL" Club="Piwakawaka Fencing" Classement="${fencer.rank}" Statut="N"></Tireur>`
+                    return `<Tireur ID="${fencer.id+1}" Nom="${fencer.lastName.toUpperCase()}" Prenom="${fencer.firstName}" Sexe="${fencer.gender}" Lateralite="D" Nation="NZL" Club="Piwakawaka Fencing" Classement="${fencer.rank}" Statut="N"></Tireur>`
                 }).join(" ")}
             </Tireurs>
             <Phases>
@@ -387,65 +388,117 @@ function App() {
     <div className={"grid lg:grid-cols-2"}>
 
         <div className={"m-8"}>
-            <form onSubmit={(event) => {
-                event.preventDefault();
-                if (name !== "") {
-                    setFencers(
-                        [
-                            ...fencers,
-                            {
-                                id: nextFencerId,
-                                name: name,
-                                seed: 0,
-                                points: 0,
-                                rank: (fencers.length + 1),
-                                results: [],
-                                hitsScored: 0,
-                                hitsRecieved: 0,
-                                strengthOfSchedule: 0,
-                                strengthOfVictory: 0,
-                                byes: 0,
-                                removed: false
+            <Dialog.Root>
+                <Dialog.Trigger>
+                    <button className={"border rounded px-2 ml-2 print:hidden"}>Add fencers</button>
+                </Dialog.Trigger>
+                <Dialog.Portal>
+                    <Dialog.Overlay className={"bg-gray-600 opacity-80 fixed inset-0 z-30"} />
+                    <Dialog.Content className={"fixed top-[50%] left-[50%] z-40 max-h-[100vh] max-w-5xl translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none"}>
+                        <Dialog.Title className={"font-bold text-xl"}>Add fencers</Dialog.Title>
+                        <form onSubmit={(event) => {
+                            event.preventDefault();
+                            if (fencerForm.firstName !== "" && fencerForm.lastName !== "" && (fencerForm.gender === "M" || fencerForm.gender === "F")) {
+                                setFencers(
+                                    [
+                                        ...fencers,
+                                        {
+                                            id: nextFencerId,
+                                            firstName: fencerForm.firstName,
+                                            lastName: fencerForm.lastName,
+                                            gender: fencerForm.gender,
+                                            seed: 0,
+                                            points: 0,
+                                            rank: (fencers.length + 1),
+                                            results: [],
+                                            hitsScored: 0,
+                                            hitsRecieved: 0,
+                                            strengthOfSchedule: 0,
+                                            strengthOfVictory: 0,
+                                            byes: 0,
+                                            removed: false
+                                        }
+                                    ]
+                                );
+                                setTable(
+                                    [
+                                        ...table,
+                                        {
+                                            id: nextFencerId++,
+                                            firstName: fencerForm.firstName,
+                                            lastName: fencerForm.lastName,
+                                            gender: fencerForm.gender,
+                                            seed: 0,
+                                            points: 0,
+                                            rank: (table.length + 1),
+                                            results: [],
+                                            hitsScored: 0,
+                                            hitsRecieved: 0,
+                                            strengthOfSchedule: 0,
+                                            strengthOfVictory: 0,
+                                            byes: 0,
+                                            removed: false
+                                        }
+                                    ]
+                                );
+                                setFencerForm({firstName: "", lastName: "", gender: "M"});
                             }
-                        ]
-                    );
-                    setTable(
-                        [
-                            ...table,
-                            {
-                                id: nextFencerId++,
-                                name: name,
-                                seed: 0,
-                                points: 0,
-                                rank: (table.length + 1),
-                                results: [],
-                                hitsScored: 0,
-                                hitsRecieved: 0,
-                                strengthOfSchedule: 0,
-                                strengthOfVictory: 0,
-                                byes: 0,
-                                removed: false
-                            }
-                        ]
-                    );
-                    setName("");
-                }
-            }}>
-                <div className={"w-full print:hidden"}>
-                    <input
-                        type={"text"}
-                        className={"border rounded w-1/2"}
-                        value={name}
-                        onChange={e => {
-                            setName(e.target.value)}
-                        }
-                    />
-                    <button type={"submit"} className={"border rounded px-2 ml-2 print:hidden"}>Add</button>
-                </div>
-            </form>
+                        }}>
+                            <div className={"w-full print:hidden ml-2"}>
+                                <div className={"my-2"}>
+                                    <label htmlFor={"firstName"}>First Name</label>
+                                    <div>
+                                        <input
+                                            type={"text"}
+                                            className={"border rounded w-96 p-1"}
+                                            id={"firstName"}
+                                            value={fencerForm.firstName}
+                                            onChange={e => {
+                                                setFencerForm({...fencerForm, firstName: e.target.value})
+                                            }
+                                            }
+                                        />
+                                    </div>
+                                </div>
+                                <div className={"my-2"}>
+                                    <label htmlFor={"lastName"}>Last Name</label>
+                                    <div>
+                                        <input
+                                            type={"text"}
+                                            className={"border rounded w-96 p-1"}
+                                            id={"lastName"}
+                                            value={fencerForm.lastName}
+                                            onChange={e => {
+                                                setFencerForm({...fencerForm, lastName: e.target.value})
+                                            }
+                                            }
+                                        />
+                                    </div>
+                                </div>
+                                <div className={"my-2"}>
+                                    <label>Gender</label>
+                                    <div>
+                                        <select value={fencerForm.gender} onChange={e => {
+                                            setFencerForm({...fencerForm, gender: e.target.value})
+                                        }} className={"p-1 rounded pl-2"}>
+                                            <option value={"M"}>Male</option>
+                                            <option value={"F"}>Female</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className={"flex w-full justify-end"}>
+                                    <button type={"submit"}
+                                            className={"border rounded px-2 justify-end print:hidden"}>Add
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </Dialog.Content>
+                </Dialog.Portal>
+            </Dialog.Root>
             {table.length > 0 ?
                 <div className={printTarget === "table" ? " print-visible" : " print:hidden"}>
-                    <table className={"mt-8"}
+                <table className={"mt-8"}
                            id={"table"}>
                         <thead>
                         <tr>
@@ -469,7 +522,7 @@ function App() {
                                 </td>
                                 <td className={" p-0"}
                                     onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
-                                    <div className={getColour(fencer) + " pl-2 w-full"}>{fencer.name}</div>
+                                    <div className={getColour(fencer) + " pl-2 w-full"}>{fencer.firstName} {fencer.lastName}</div>
                                 </td>
                                 <td className={"font-semibold text-center border-black border-l p-0"}
                                     onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
@@ -521,7 +574,7 @@ function App() {
                                         return <div>{result.opponent !== -1 ? `vs ${
                                             (() => {
                                                 const opponent = table.find(fencer => fencer.id === result.opponent)
-                                                return opponent ? opponent.name : "[Removed]"
+                                                return opponent ? `${opponent.firstName} ${opponent.lastName}` : "[Removed]"
                                             })()
                                         }: ${result.victory ? "V" : "D"} ${result.score}-${result.oppScore}` : "[Bye]"}</div>
                                     })}</td>
@@ -569,7 +622,7 @@ function App() {
                                    id={bout.fencer1.id.toString()} name={bout.id.toString()} required
                                    onClick={() => updateBout(bout.id, bout.fencer1.id)} checked={bout.winner === bout.fencer1.id}></input>
                             <label htmlFor={bout.fencer1.id.toString()}
-                                   className={"p-8 flex w-full rounded border-2 peer-checked:border-green-600 peer-checked:border-[3px] peer-checked:font-semibold peer-checked:text-green-800 " + (bout.winner !== bout.fencer1.id && bout.winner !== -1 ? "text-red-700 border-red-600" : "")}>{bout.fencer1.name + " "}</label>
+                                   className={"p-8 flex w-full rounded border-2 peer-checked:border-green-600 peer-checked:border-[3px] peer-checked:font-semibold peer-checked:text-green-800 " + (bout.winner !== bout.fencer1.id && bout.winner !== -1 ? "text-red-700 border-red-600" : "")}>{bout.fencer1.firstName + " "} {bout.fencer1.lastName}</label>
                         </div>
                         <input type={"number"} className={"w-8 p-1 justify-items-center border-2 border-black rounded " + (bout.winner !== -1 ? bout.winner === bout.fencer1.id ? "text-green-800 border-green-600 border-[3px]" : "text-red-700 border-red-600" : "")}
                                min={0} id={bout.fencer1.id.toString() + "_score"} style={{marginRight: '4px'}} required value={bout.score1} onInput={(event) => updateBoutScore(bout.id, event.currentTarget.valueAsNumber, undefined)}/>
@@ -581,11 +634,11 @@ function App() {
                                    id={bout.fencer2.id.toString()} name={bout.id.toString()}
                                    onClick={() => updateBout(bout.id, bout.fencer2.id)} checked={bout.winner === bout.fencer2.id}></input>
                             <label htmlFor={bout.fencer2.id.toString()}
-                                   className={"p-8 flex w-full rounded border-2 peer-checked:border-green-600 peer-checked:border-[3px] peer-checked:font-semibold peer-checked:text-green-800 " + (bout.winner !== bout.fencer2.id && bout.winner !== -1 ? "text-red-700 border-red-600" : "")}>{" " + bout.fencer2.name}</label>
+                                   className={"p-8 flex w-full rounded border-2 peer-checked:border-green-600 peer-checked:border-[3px] peer-checked:font-semibold peer-checked:text-green-800 " + (bout.winner !== bout.fencer2.id && bout.winner !== -1 ? "text-red-700 border-red-600" : "")}>{" " + bout.fencer2.firstName} {bout.fencer2.lastName}</label>
                         </div>
                     </div>
                 ))}
-                {started && bye ? <p>Bye: {bye.name}</p> : ""}
+                {started && bye ? <p>Bye: {bye.firstName} {bye.lastName}</p> : ""}
                 {started ? <button onClick={() => print("bouts")} className={"border rounded px-1 mt-2 print:hidden flex"}><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 w-4 h-4 mt-auto mb-auto">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
                 </svg>
