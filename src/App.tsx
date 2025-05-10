@@ -73,11 +73,10 @@ function App() {
   }
 
     const exportToCSV = (filename: string) => {
-        const resultData = `
-        ${table.map(fencer => {
-            return `${fencer.rank},${fencer.firstName},${fencer.lastName.toUpperCase()},${fencer.gender}`
-        }).join("\n")}
-      `
+        const resultData =
+            `First Name,Last Name\n${table.map(fencer => {
+            return `${fencer.firstName},${fencer.lastName.toUpperCase()}`
+        }).join("\n")}`
         let element = document.createElement("a")
         element.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(resultData))
         element.setAttribute("download", filename)
