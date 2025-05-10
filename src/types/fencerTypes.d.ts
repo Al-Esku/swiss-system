@@ -3,6 +3,7 @@ type fencer = {
     firstName: string,
     lastName: string,
     gender: string,
+    club: string,
     seed: number,
     points: number,
     rank: number,
@@ -41,5 +42,6 @@ type individual = {
 type fencerForm = {
     firstName: string,
     lastName: string,
-    gender: string
+    gender: string,
+    club: string
 }
