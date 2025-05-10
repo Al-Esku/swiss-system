@@ -449,7 +449,7 @@ function App() {
                                         }
                                     ]
                                 );
-                                setFencerForm({firstName: "", lastName: "", gender: "M", club: ""});
+                                setFencerForm({firstName: "", lastName: "", gender: fencerForm.gender, club: ""});
                             }
                         }}>
                             <div className={"w-full print:hidden ml-2"}>
