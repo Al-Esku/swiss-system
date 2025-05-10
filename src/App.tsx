@@ -593,7 +593,7 @@ function App() {
                                                         <Dialog.Title className={"font-bold text-xl"}>Are you sure you want to remove {fencer.firstName} {fencer.lastName}?</Dialog.Title>
                                                         <div className={"ml-4 mt-4"}>
                                                             <div>
-                                                                This cannot be undone
+                                                                This cannot be undone.
                                                             </div>
                                                             <div className={"flex justify-end mt-4"}>
                                                                 <button className={"px-2 py-1 rounded border border-red-600 bg-red-300 hover:bg-red-600 hover:text-white mr-2"} onClick={() => removeFencer(fencer.id)}>Remove</button>
@@ -668,9 +668,34 @@ function App() {
                     </div>
                     <button onClick={randomSeed}
                             className={"border rounded px-2 mt-6 print:hidden"}>{started ? "Shuffle Bouts" : "Start Round"}</button>
-                    <button onClick={resetPairings}
-                            className={"border rounded px-2 mt-2 ml-2 print:hidden"}>Reset Pairings
-                    </button>
+                    <Dialog.Root>
+                        <Dialog.Trigger>
+                            <button onClick={resetPairings}
+                                    className={"border rounded px-2 mt-2 ml-2 print:hidden"}>Reset Matchmaking
+                            </button>
+                        </Dialog.Trigger>
+                        <Dialog.Portal>
+                            <Dialog.Overlay
+                                className={"bg-gray-600 opacity-80 fixed inset-0 z-30"}/>
+                            <Dialog.Content
+                                className={"fixed top-[50%] left-[50%] z-40 max-h-[100vh] max-w-5xl translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none"}>
+                                <Dialog.Title className={"font-bold text-xl"}>Are you sure you want to reset matchmaking?</Dialog.Title>
+                                <div className={"ml-4 mt-4"}>
+                                    <div className={"max-w-[400px]"}>
+                                        This will mean that bouts up to this point will not impact how bouts are assigned. This cannot be undone.
+                                    </div>
+                                    <div className={"flex justify-end mt-4"}>
+                                        <button className={"px-2 py-1 rounded border border-red-600 bg-red-300 hover:bg-red-600 hover:text-white mr-2"} onClick={resetPairings}>Reset</button>
+                                        <Dialog.Close>
+                                            <button
+                                                className={"px-2 py-1 rounded border border-gray-600 bg-gray-200 hover:bg-gray-600 hover:text-white"}>Cancel
+                                            </button>
+                                        </Dialog.Close>
+                                    </div>
+                                </div>
+                            </Dialog.Content>
+                        </Dialog.Portal>
+                    </Dialog.Root>
                 </div> : ""}
         </div>
         <div className={"max-lg:ml-8 " + (printTarget === "bouts" ? "print-visible" : "print:hidden")}>
