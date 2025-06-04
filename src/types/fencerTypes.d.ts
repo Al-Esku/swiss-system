@@ -48,4 +48,9 @@ type fencerForm = {
 
 type competition = {
     name: string,
+    events: event[]
+}
+
+type event = {
+    name: string
 }
