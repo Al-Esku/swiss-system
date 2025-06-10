@@ -45,3 +45,12 @@ type fencerForm = {
     gender: string,
     club: string
 }
+
+type competition = {
+    name: string,
+    events: event[]
+}
+
+type event = {
+    name: string
+}
