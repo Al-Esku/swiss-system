@@ -111,7 +111,7 @@ function App() {
                 <div className={"w-full border-t"}>
                     {competition?.events.map((event, index) => {
                         return <div className={activeEvent !== index ? "hidden" : ""}>
-                            <Event></Event>
+                            <Event competition={competition} setCompetition={setCompetition} eventIndex={index}></Event>
                         </div>
                     })}
                 </div>
