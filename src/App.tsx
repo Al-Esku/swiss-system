@@ -6,6 +6,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 function App() {
     const [competition, setCompetition] = React.useState<competition|null>(null)
     const [activeEvent, setActiveEvent] = React.useState(0)
+    const [addEventDialogOpen, setAddEventDialogOpen] = React.useState(false)
 
     function createCompetition(event: FormEvent) {
         event.preventDefault()
@@ -18,13 +19,12 @@ function App() {
     function addEvent(event: FormEvent) {
         event.preventDefault()
         const name = document.getElementById("eventName") as HTMLInputElement
-        console.log(name.value)
-        if (name) {
-
+        if (name && name.value !== "") {
             setCompetition((current) => ({
                 name: current?.name ?? "",
                 events: [...current?.events ?? [], {name: name.value}]
             }))
+            setAddEventDialogOpen(false)
         }
     }
 
@@ -79,7 +79,7 @@ function App() {
                     {competition?.events.map(((event, index) => {
                         return <button className={"border px-2 pb-1 print:hidden min-w-fit " + (index === activeEvent ? "bg-gray-300 border-gray-300" : "")} onClick={() => setActiveEvent(index)}>{event.name}</button>
                     }))}
-                    <Dialog.Root>
+                    <Dialog.Root open={addEventDialogOpen} onOpenChange={open => setAddEventDialogOpen(open)}>
                         <Dialog.Trigger>
                             <button className={"border rounded-tr px-2 pb-1 print:hidden"}>+</button>
                         </Dialog.Trigger>
