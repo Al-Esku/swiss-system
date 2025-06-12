@@ -911,7 +911,7 @@ function Event(props: eventProps) {
                                                     fencer.points === 3 ? "bg-blue-400" :
                                                         fencer.points === 4 ? "bg-purple-400" : "bg-amber-300")}>
                                         <td className={"pl-2 border-black border-t"}
-                                            colSpan={9}>{fencer.results.map((result) => {
+                                            colSpan={10}>{fencer.results.map((result) => {
                                             return <div>{result.opponent !== -1 ? `vs ${
                                                 (() => {
                                                     const opponent = table.find(fencer => fencer.id === result.opponent)
