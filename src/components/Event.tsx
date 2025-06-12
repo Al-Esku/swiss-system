@@ -22,6 +22,9 @@ function Event(props: eventProps) {
     const [indexOpen, setIndexOpen] = React.useState(-1)
     const [printTarget, setPrintTarget] = React.useState<string | null>(null)
     const editDialogOpen = React.useRef(false)
+    const [file, setFile] = React.useState<File | null>(null)
+    const [lines, setLines] = React.useState<string[]>([])
+    const [fileError, setFileError] = React.useState("")
 
     const print = (id: string) => {
         setPrintTarget(id)
@@ -81,8 +84,8 @@ function Event(props: eventProps) {
 
     const exportToCSV = (filename: string) => {
         const resultData =
-            `First Name,Last Name\n${table.map(fencer => {
-                return `${fencer.firstName},${fencer.lastName.toUpperCase()}`
+            `First Name,Last Name,Gender,Club\n${table.map(fencer => {
+                return `${fencer.firstName},${fencer.lastName},${fencer.gender},${fencer.club}`
             }).join("\n")}`
         let element = document.createElement("a")
         element.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(resultData))
@@ -406,6 +409,52 @@ function Event(props: eventProps) {
                             fencer.points === 4 ? "bg-purple-400" : "bg-amber-300")
     }
 
+    const addFencersFromCSV = () => {
+        let newFencers = fencers
+        const newTable = table
+        lines.slice(1).forEach(line => {
+            const values = line.split(",")
+            newFencers.push({
+                id: nextFencerId,
+                firstName: values[0],
+                lastName: values[1],
+                gender: values[2],
+                club: values[3],
+                seed: 0,
+                points: 0,
+                rank: (newFencers.length + 1),
+                results: [],
+                hitsScored: 0,
+                hitsRecieved: 0,
+                strengthOfSchedule: 0,
+                strengthOfVictory: 0,
+                byes: 0,
+                removed: false
+            })
+            newTable.push({
+                id: nextFencerId++,
+                firstName: values[0],
+                lastName: values[1],
+                gender: values[2],
+                club: values[3],
+                seed: 0,
+                points: 0,
+                rank: (newTable.length + 1),
+                results: [],
+                hitsScored: 0,
+                hitsRecieved: 0,
+                strengthOfSchedule: 0,
+                strengthOfVictory: 0,
+                byes: 0,
+                removed: false
+            })
+        })
+        console.log(newFencers)
+        console.log(newTable)
+        setFencers(newFencers)
+        setTable(newTable)
+    }
+
     return (
         <div className={"grid lg:grid-cols-2"}>
             <div className={"m-8"}>
@@ -531,6 +580,78 @@ function Event(props: eventProps) {
                                     </div>
                                 </div>
                             </form>
+                        </Dialog.Content>
+                    </Dialog.Portal>
+                </Dialog.Root>
+                <Dialog.Root onOpenChange={open => {
+                    if (!open) {
+                        setLines([])
+                    }
+                }}>
+                    <Dialog.Trigger>
+                        <button className={"border rounded px-2 print:hidden"}>Add fencers from CSV</button>
+                    </Dialog.Trigger>
+                    <Dialog.Portal>
+                        <Dialog.Overlay className={"bg-gray-600 opacity-80 fixed inset-0 z-30"} />
+                        <Dialog.Content className={"fixed top-[50%] left-[50%] z-40 max-h-[100vh] max-w-5xl translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none"}>
+                            <Dialog.Title className={"font-bold text-xl"}>Add fencers</Dialog.Title>
+                            {lines.length === 0 ? <form onSubmit={async (event) => {
+                                event.preventDefault();
+                                if (file && file.type === "text/csv") {
+                                    setLines(await file.text().then(contents => {
+                                        const newLines = contents.split("\n")
+                                        if (newLines.every(line => {
+                                            return line.split(",").length === 4
+                                        })) {
+                                            return newLines
+                                        } else {
+                                            setFileError("Invalid CSV. Accepted format: first_name,last_name,gender,club")
+                                            return []
+                                        }
+                                    }).catch(err => {return []}))
+                                }
+                            }}>
+                                <div className={"w-full print:hidden ml-2"}>
+                                    <div>
+                                        <input type={"file"} className={fileError != "" ? "border-red-600": ""} accept={"text/csv"} id={"fencerFile"} onChange={e => {
+                                            setFile(e.target.files != null ? e.target.files[0] : null)
+                                            setFileError("")
+                                        }}/>
+                                    </div>
+                                    {fileError != "" && <span className={"text-red-600"}>{fileError}</span>}
+                                    <div className={"flex w-full justify-end"}>
+                                        <button type={"submit"}
+                                                className={"border rounded px-2 justify-end print:hidden"}>Upload
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>:
+                                <div>
+                                    <div className={"border max-h-[400px] overflow-scroll"}>
+                                        <table>
+                                            <thead>
+                                            <tr>
+                                                <th>First Name</th>
+                                                <th>Last Name</th>
+                                                <th>Gender</th>
+                                                <th>Club</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {lines.slice(1).map(line => {
+                                                return <tr>{line.split(",").map(value => {
+                                                    return <td className={"px-4"}>{value}</td>
+                                                })}</tr>
+                                            })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <Dialog.Close>
+                                        <button className={"border rounded px-2 print:hidden"}
+                                                onClick={addFencersFromCSV}>Add fencers
+                                        </button>
+                                    </Dialog.Close>
+                                </div>}
                         </Dialog.Content>
                     </Dialog.Portal>
                 </Dialog.Root>
