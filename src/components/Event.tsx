@@ -21,7 +21,7 @@ function Event(props: eventProps) {
     const [started, setStarted] = React.useState(false)
     const [indexOpen, setIndexOpen] = React.useState(-1)
     const [printTarget, setPrintTarget] = React.useState<string | null>(null)
-    const editDialogOpen = React.useRef(false)
+    const editDialogOpen = React.useRef<boolean[]>([])
     const [file, setFile] = React.useState<File | null>(null)
     const [lines, setLines] = React.useState<string[]>([])
     const [fileError, setFileError] = React.useState("")
@@ -448,6 +448,7 @@ function Event(props: eventProps) {
                 byes: 0,
                 removed: false
             })
+            editDialogOpen.current.push(false)
         })
         console.log(newFencers)
         console.log(newTable)
@@ -513,6 +514,7 @@ function Event(props: eventProps) {
                                             }
                                         ]
                                     );
+                                    editDialogOpen.current.push(false)
                                     setFencerForm(current => {return {firstName: "", lastName: "", gender: current.gender, club: ""}});
                                 }
                             }}>
@@ -731,8 +733,8 @@ function Event(props: eventProps) {
                                                             }
                                                         })
                                                     }
-                                                    editDialogOpen.current = open
-                                                }} open={editDialogOpen.current}>
+                                                    editDialogOpen.current[index] = open
+                                                }} open={editDialogOpen.current[index]}>
                                                     <Dialog.Trigger>
                                                         <a className={"hover:cursor-pointer"}>
                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -781,7 +783,7 @@ function Event(props: eventProps) {
                                                                     })
                                                                     setFencers(newFencers)
                                                                     setTable(newTable)
-                                                                    editDialogOpen.current = false
+                                                                    editDialogOpen.current[index] = false
                                                                 }
                                                             }}>
                                                                 <div className={"w-full print:hidden ml-2"}>
