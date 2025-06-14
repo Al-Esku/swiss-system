@@ -22,7 +22,7 @@ function Event(props: eventProps) {
     const [indexOpen, setIndexOpen] = React.useState(-1)
     const [printTarget, setPrintTarget] = React.useState<string | null>(null)
     const editDialogOpen = React.useRef<boolean[]>([])
-    const [file, setFile] = React.useState<File | null>(null)
+    const [fileForm, setFileForm] = React.useState<fileForm>({file: null, hasHeader: true})
     const [lines, setLines] = React.useState<string[]>([])
     const [fileError, setFileError] = React.useState("")
 
@@ -412,7 +412,7 @@ function Event(props: eventProps) {
     const addFencersFromCSV = () => {
         let newFencers = fencers
         const newTable = table
-        lines.slice(1).forEach(line => {
+        lines.slice(fileForm.hasHeader ? 1: 0).forEach(line => {
             const values = line.split(",")
             newFencers.push({
                 id: nextFencerId,
@@ -599,11 +599,11 @@ function Event(props: eventProps) {
                             <Dialog.Title className={"font-bold text-xl"}>Add fencers</Dialog.Title>
                             {lines.length === 0 ? <form onSubmit={async (event) => {
                                 event.preventDefault();
-                                if (file && file.type === "text/csv") {
-                                    setLines(await file.text().then(contents => {
+                                if (fileForm.file && fileForm.file.type === "text/csv") {
+                                    setLines(await fileForm.file.text().then(contents => {
                                         const newLines = contents.split("\n")
-                                        if (newLines.every(line => {
-                                            return line.split(",").length === 4
+                                        if (newLines.slice(fileForm.hasHeader ? 1: 0).every(line => {
+                                            return line.split(",").length === 4 && (line.split(",")[2].toUpperCase() === "M" || line.split(",")[2].toUpperCase() === "F")
                                         })) {
                                             return newLines
                                         } else {
@@ -614,13 +614,23 @@ function Event(props: eventProps) {
                                 }
                             }}>
                                 <div className={"w-full print:hidden ml-2"}>
-                                    <div>
+                                    <div className={"p-2 pt-4"}>
                                         <input type={"file"} className={fileError != "" ? "border-red-600": ""} accept={"text/csv"} id={"fencerFile"} onChange={e => {
-                                            setFile(e.target.files != null ? e.target.files[0] : null)
+                                            setFileForm(current => {return {...current, file: e.target.files != null ? e.target.files[0] : null}})
                                             setFileError("")
                                         }}/>
                                     </div>
                                     {fileError != "" && <span className={"text-red-600"}>{fileError}</span>}
+                                    <div className={"p-2"}>
+                                        <input type={"checkbox"} onChange={e => {
+                                            setFileForm(current => {
+                                                return {...current, hasHeader: e.target.checked}
+                                            })
+                                        }} checked={fileForm.hasHeader} id={"headerCheckbox"} className={"h-5 w-5 justify-center"}/>
+                                        <label htmlFor={"headerCheckbox"} className={"pl-2"}>
+                                            Header line
+                                        </label>
+                                    </div>
                                     <div className={"flex w-full justify-end"}>
                                         <button type={"submit"}
                                                 className={"border rounded px-2 justify-end print:hidden"}>Upload
@@ -629,7 +639,7 @@ function Event(props: eventProps) {
                                 </div>
                             </form>:
                                 <div>
-                                    <div className={"border max-h-[400px] overflow-scroll"}>
+                                    <div className={"border max-h-[400px] overflow-scroll mx-2 my-4 p-1"}>
                                         <table>
                                             <thead>
                                             <tr>
@@ -640,7 +650,7 @@ function Event(props: eventProps) {
                                             </tr>
                                             </thead>
                                             <tbody>
-                                            {lines.slice(1).map(line => {
+                                            {lines.slice(fileForm.hasHeader ? 1: 0).map(line => {
                                                 return <tr>{line.split(",").map(value => {
                                                     return <td className={"px-4"}>{value}</td>
                                                 })}</tr>
@@ -648,8 +658,8 @@ function Event(props: eventProps) {
                                             </tbody>
                                         </table>
                                     </div>
-                                    <Dialog.Close>
-                                        <button className={"border rounded px-2 print:hidden"}
+                                    <Dialog.Close className={"flex w-full justify-end"}>
+                                        <button className={"border rounded px-2 print:hidden flex justify-end"}
                                                 onClick={addFencersFromCSV}>Add fencers
                                         </button>
                                     </Dialog.Close>

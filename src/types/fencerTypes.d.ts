@@ -54,3 +54,8 @@ type competition = {
 type event = {
     name: string
 }
+
+type fileForm = {
+    file: File | null,
+    hasHeader: boolean
+}
