@@ -39,6 +39,11 @@ type individual = {
     cost: number
 }
 
+type round = {
+    bouts: bout[],
+    bye: undefined|fencer
+}
+
 type fencerForm = {
     firstName: string,
     lastName: string,
