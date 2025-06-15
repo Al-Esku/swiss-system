@@ -15,7 +15,6 @@ function Event(props: eventProps) {
     const [fencerForm, setFencerForm] = React.useState<fencerForm>({firstName: "", lastName: "", gender: "M", club: ""})
     const [table, setTable] = React.useState<fencer[]>([])
     const [fencers, setFencers] = React.useState<fencer[]>([])
-    const [bye, setBye] = React.useState<fencer>()
     const [rounds, setRounds] = React.useState<round[]>([{bouts: [], bye: undefined}])
     const [roundNum, setRoundNum] = React.useState(0)
     const [started, setStarted] = React.useState(false)
@@ -99,7 +98,6 @@ function Event(props: eventProps) {
     }
 
     const randomSeed = () => {
-        setBye(undefined)
         if (fencers.length >= 2) {
             let currRound: number
             if (!started) {
@@ -162,9 +160,6 @@ function Event(props: eventProps) {
                     return round
                 }
             })});
-            if (optimal.bye) {
-                setBye(optimal.bye)
-            }
             setStarted(true);
         }
     }
@@ -217,6 +212,7 @@ function Event(props: eventProps) {
                     }
                 })
             })
+            const bye = rounds[roundNum-1].bye
             if (bye) {
                 let tableBye = table.find(fencer => {
                     return fencer.id === bye.id
@@ -244,7 +240,6 @@ function Event(props: eventProps) {
                     updatedTable.push(tableBye)
                 }
             }
-            setBye(undefined)
             table.forEach(fencer => {
                 if (fencer.removed) {
                     updatedTable.push(fencer)
@@ -318,9 +313,6 @@ function Event(props: eventProps) {
     const cancelRound = () => {
         setStarted(false)
         setRounds(current => [...current.slice(0, -1), {bouts: [], bye: undefined}])
-        if (bye) {
-            setBye(undefined)
-        }
         setRoundNum(current => current - 1)
         setActiveRound(current => current - 1)
     }
