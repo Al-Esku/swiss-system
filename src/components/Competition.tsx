@@ -91,7 +91,7 @@ function Competition(props: compProps) {
                     </div>
                 </div>
                 <div className={"flex w-full justify-center"}>
-                    <Dialog.Root>
+                    {!props.client && <Dialog.Root>
                         <Dialog.Trigger>
                             <a type={"button"}
                                     className={"border rounded px-2 mt-6 ml-2 print:hidden"}>Start competition
@@ -121,7 +121,7 @@ function Competition(props: compProps) {
                                 </form>
                             </Dialog.Content>
                         </Dialog.Portal>
-                    </Dialog.Root>
+                    </Dialog.Root>}
                 </div>
             </div>}
             {competition !== null && <div>
@@ -132,7 +132,7 @@ function Competition(props: compProps) {
                     {competition?.events.map(((event, index) => {
                         return <button key={index} className={"border px-2 pb-1 print:hidden min-w-fit " + (index === activeEvent ? "bg-gray-300 border-gray-300" : "")} onClick={() => setActiveEvent(index)}>{event.name}</button>
                     }))}
-                    <Dialog.Root open={addEventDialogOpen} onOpenChange={open => setAddEventDialogOpen(open)}>
+                    {!props.client && <Dialog.Root open={addEventDialogOpen} onOpenChange={open => setAddEventDialogOpen(open)}>
                         <Dialog.Trigger>
                             <a className={"border rounded-tr px-2 pb-1 print:hidden"}>+</a>
                         </Dialog.Trigger>
@@ -159,12 +159,12 @@ function Competition(props: compProps) {
                                 </form>
                             </Dialog.Content>
                         </Dialog.Portal>
-                    </Dialog.Root>
+                    </Dialog.Root>}
                 </div>
                 <div className={"w-full border-t"}>
                     {competition?.events.map((event, index) => {
                         return <div className={activeEvent !== index ? "hidden" : ""} key={index}>
-                            <Event competition={competition} setCompetition={setCompetition} eventIndex={index}></Event>
+                            <Event competition={competition} setCompetition={setCompetition} eventIndex={index} client={props.client}></Event>
                         </div>
                     })}
                 </div>
