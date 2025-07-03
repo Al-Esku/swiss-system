@@ -15,12 +15,16 @@ function Event(props: eventProps) {
     const [fencerForm, setFencerForm] = React.useState<fencerForm>({firstName: "", lastName: "", gender: "M", club: ""})
     const [table, setTable] = React.useState<fencer[]>([])
     const [fencers, setFencers] = React.useState<fencer[]>([])
-    const [bye, setBye] = React.useState<fencer>()
-    const [bouts, setBouts] = React.useState<bout[][]>([[]])
-    const [rounds, setRounds] = React.useState(0)
+    const [rounds, setRounds] = React.useState<round[]>([{bouts: [], bye: undefined}])
+    const [roundNum, setRoundNum] = React.useState(0)
     const [started, setStarted] = React.useState(false)
     const [indexOpen, setIndexOpen] = React.useState(-1)
     const [printTarget, setPrintTarget] = React.useState<string | null>(null)
+    const editDialogOpen = React.useRef<boolean[]>([])
+    const [fileForm, setFileForm] = React.useState<fileForm>({file: null, hasHeader: true})
+    const [lines, setLines] = React.useState<string[]>([])
+    const [fileError, setFileError] = React.useState("")
+    const [activeRound, setActiveRound] = React.useState(0)
 
     const print = (id: string) => {
         setPrintTarget(id)
@@ -43,13 +47,13 @@ function Event(props: eventProps) {
     </Tireurs>
     <Arbitres />
     <Phases>
-        ${bouts.map((boutArray, index) => {
-                if (boutArray.length > 0) {
-                    return `<TourDePoules PhaseID="TourPoules${index+1}" ID="${index+1}" NbDePoules="${boutArray.length}">
+        ${rounds.map((round, index) => {
+                if (round.bouts.length > 0) {
+                    return `<TourDePoules PhaseID="TourPoules${index+1}" ID="${index+1}" NbDePoules="${round.bouts.length}">
                         ${tempTable.map((fencer, fencerIndex) => {
                         return `<Tireur REF="${fencerIndex+1}" RangInitial="${fencerIndex + 1}" RangFinal="${fencer.rank}" Statut="Q"></Tireur>`
                     }).join("\n")}
-                        ${boutArray.map((bout, boutIndex) => {
+                        ${round.bouts.map((bout, boutIndex) => {
                         return `
                                 <Poule ID="${boutIndex + 1}">
                                     <Tireur REF="${tempTable.findIndex(fencer => fencer.id === bout.fencer1.id)+1}" NoDansLaPoule="1" NbVictoires="${bout.winner === bout.fencer1.id ? 1 : 0}" NbMatches="1" TD="${bout.score1}" TR="${bout.score2}"></Tireur>
@@ -80,8 +84,8 @@ function Event(props: eventProps) {
 
     const exportToCSV = (filename: string) => {
         const resultData =
-            `First Name,Last Name\n${table.map(fencer => {
-                return `${fencer.firstName},${fencer.lastName.toUpperCase()}`
+            `First Name,Last Name,Gender,Club\n${table.map(fencer => {
+                return `${fencer.firstName},${fencer.lastName},${fencer.gender},${fencer.club}`
             }).join("\n")}`
         let element = document.createElement("a")
         element.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(resultData))
@@ -94,15 +98,15 @@ function Event(props: eventProps) {
     }
 
     const randomSeed = () => {
-        setBye(undefined)
         if (fencers.length >= 2) {
-            let round: number
+            let currRound: number
             if (!started) {
-                round = rounds + 1
-                setRounds(current => current+1)
+                currRound = roundNum + 1
+                setRoundNum(current => current+1)
             } else {
-                round = rounds
+                currRound = roundNum
             }
+            setActiveRound(currRound-1)
             let optimal: individual = {bouts: [], cost: Infinity, bye:undefined}
             for (let i = 0; i <= 10000; i++) {
                 let newFencers = fencers.filter(fencer => !fencer.removed)
@@ -135,7 +139,7 @@ function Event(props: eventProps) {
                         cost: newFencers[i].results.some(result => result.opponent === newFencers[i+1].id) ? Math.abs(newFencers[i].points - newFencers[i+1].points) > 1 ? Math.abs(newFencers[i].points - newFencers[i+1].points) + 0.5 : 1.5 : Math.abs(newFencers[i].points - newFencers[i+1].points)})
                 }
                 let cost = 0
-                if (newBye && Math.floor( (rounds - 1) / fencers.length) !== newBye.byes) {
+                if (newBye && Math.floor( (roundNum - 1) / fencers.length) !== newBye.byes) {
                     cost += 1000
                 }
                 newBouts.forEach((bout) => {
@@ -149,24 +153,21 @@ function Event(props: eventProps) {
                     }
                 }
             }
-            setBouts((current) => current.map((boutArray, index) => {
-                if (index === round - 1) {
-                    return optimal.bouts
+            setRounds((current) => {return current.map((round, index) => {
+                if (index === currRound - 1) {
+                    return {bouts: optimal.bouts, bye: optimal.bye}
                 } else {
-                    return boutArray
+                    return round
                 }
-            }));
-            if (optimal.bye) {
-                setBye(optimal.bye)
-            }
+            })});
             setStarted(true);
         }
     }
 
     const endRound = (event: FormEvent) => {
         event.preventDefault();
-        console.log(bouts)
-        if (bouts[rounds-1].every((bout) => {
+        console.log(rounds)
+        if (rounds[roundNum-1].bouts.every((bout) => {
             if (bout.score1 !== undefined && bout.score2 !== undefined) {
                 if (bout.winner === bout.fencer1.id) {
                     return bout.score1 >= bout.score2
@@ -179,7 +180,7 @@ function Event(props: eventProps) {
             setStarted(false);
             let updatedFencers: fencer[] = []
             let updatedTable: fencer[] = []
-            bouts[rounds-1].forEach((bout) => {
+            rounds[roundNum-1].bouts.forEach((bout) => {
                 fencers.forEach((fencer) => {
                     if (fencer.id === bout.fencer1.id || fencer.id === bout.fencer2.id) {
                         updatedFencers.push({
@@ -211,6 +212,7 @@ function Event(props: eventProps) {
                     }
                 })
             })
+            const bye = rounds[roundNum-1].bye
             if (bye) {
                 let tableBye = table.find(fencer => {
                     return fencer.id === bye.id
@@ -238,7 +240,6 @@ function Event(props: eventProps) {
                     updatedTable.push(tableBye)
                 }
             }
-            setBye(undefined)
             table.forEach(fencer => {
                 if (fencer.removed) {
                     updatedTable.push(fencer)
@@ -305,21 +306,19 @@ function Event(props: eventProps) {
             })
             setFencers(updatedFencers)
             setTable(updatedTable)
-            setBouts(current => [...current, []])
+            setRounds(current => [...current, {bouts: [], bye: undefined}])
         }
     }
 
     const cancelRound = () => {
         setStarted(false)
-        setBouts(current => [...current.slice(0, -1), []])
-        if (bye) {
-            setBye(undefined)
-        }
-        setRounds(current => current - 1)
+        setRounds(current => [...current.slice(0, -1), {bouts: [], bye: undefined}])
+        setRoundNum(current => current - 1)
+        setActiveRound(current => current - 1)
     }
 
     const updateBout = (id: number, winner: number) => {
-        const newBouts = bouts[rounds-1].map(bout => {
+        const newBouts = rounds[roundNum-1].bouts.map(bout => {
             if (bout.id === id) {
                 return {
                     ...bout,
@@ -329,17 +328,17 @@ function Event(props: eventProps) {
                 return bout
             }
         })
-        setBouts((current) => current.map((boutArray, index) => {
-            if (index === rounds-1) {
-                return newBouts
+        setRounds((current) => current.map((round, index) => {
+            if (index === roundNum-1) {
+                return {...round, bouts: newBouts}
             } else {
-                return boutArray
+                return round
             }
         }))
     }
 
     const updateBoutScore = (id: number, score1: number|undefined, score2: number|undefined) => {
-        const newBouts = bouts[rounds-1].map(bout => {
+        const newBouts = rounds[roundNum-1].bouts.map(bout => {
             console.log(0 !== undefined)
             if (bout.id === id) {
                 return {
@@ -351,11 +350,11 @@ function Event(props: eventProps) {
                 return bout
             }
         })
-        setBouts((current) => current.map((boutArray, index) => {
-            if (index === rounds-1) {
-                return newBouts
+        setRounds((current) => current.map((round, index) => {
+            if (index === roundNum-1) {
+                return {...round, bouts: newBouts}
             } else {
-                return boutArray
+                return round
             }
         }))
     }
@@ -405,16 +404,64 @@ function Event(props: eventProps) {
                             fencer.points === 4 ? "bg-purple-400" : "bg-amber-300")
     }
 
+    const addFencersFromCSV = () => {
+        let newFencers = fencers
+        const newTable = table
+        lines.slice(fileForm.hasHeader ? 1: 0).forEach(line => {
+            const values = line.split(",")
+            newFencers.push({
+                id: nextFencerId,
+                firstName: values[0],
+                lastName: values[1],
+                gender: values[2],
+                club: values[3],
+                seed: 0,
+                points: 0,
+                rank: (newFencers.length + 1),
+                results: [],
+                hitsScored: 0,
+                hitsRecieved: 0,
+                strengthOfSchedule: 0,
+                strengthOfVictory: 0,
+                byes: 0,
+                removed: false
+            })
+            newTable.push({
+                id: nextFencerId++,
+                firstName: values[0],
+                lastName: values[1],
+                gender: values[2],
+                club: values[3],
+                seed: 0,
+                points: 0,
+                rank: (newTable.length + 1),
+                results: [],
+                hitsScored: 0,
+                hitsRecieved: 0,
+                strengthOfSchedule: 0,
+                strengthOfVictory: 0,
+                byes: 0,
+                removed: false
+            })
+            editDialogOpen.current.push(false)
+        })
+        console.log(newFencers)
+        console.log(newTable)
+        setFencers(newFencers)
+        setTable(newTable)
+    }
+
     return (
         <div className={"grid lg:grid-cols-2"}>
             <div className={"m-8"}>
                 <Dialog.Root>
                     <Dialog.Trigger>
-                        <button className={"border rounded px-2 print:hidden"}>Add fencers</button>
+                        <button className={"border rounded px-2 print:hidden " + (started && "opacity-70")} disabled={started}>Add fencers</button>
                     </Dialog.Trigger>
                     <Dialog.Portal>
-                        <Dialog.Overlay className={"bg-gray-600 opacity-80 fixed inset-0 z-30"} />
-                        <Dialog.Content className={"fixed top-[50%] left-[50%] z-40 max-h-[100vh] max-w-5xl translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none"}>
+                        <Dialog.Overlay className={"bg-gray-600 opacity-80 fixed inset-0 z-30"}/>
+                        <Dialog.Content
+                            className={"fixed top-[50%] left-[50%] z-40 max-h-[100vh] max-w-5xl translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none"}>
                             <Dialog.Title className={"font-bold text-xl"}>Add fencers</Dialog.Title>
                             <form onSubmit={(event) => {
                                 event.preventDefault();
@@ -463,7 +510,10 @@ function Event(props: eventProps) {
                                             }
                                         ]
                                     );
-                                    setFencerForm({firstName: "", lastName: "", gender: fencerForm.gender, club: ""});
+                                    editDialogOpen.current.push(false)
+                                    setFencerForm(current => {
+                                        return {firstName: "", lastName: "", gender: current.gender, club: ""}
+                                    });
                                 }
                             }}>
                                 <div className={"w-full print:hidden ml-2"}>
@@ -533,6 +583,98 @@ function Event(props: eventProps) {
                         </Dialog.Content>
                     </Dialog.Portal>
                 </Dialog.Root>
+                <Dialog.Root onOpenChange={open => {
+                    if (!open) {
+                        setLines([])
+                    }
+                }}>
+                    <Dialog.Trigger>
+                        <button className={"border rounded px-2 print:hidden ml-2 " + (started && "opacity-70")} disabled={started}>Add fencers from CSV</button>
+                    </Dialog.Trigger>
+                    <Dialog.Portal>
+                        <Dialog.Overlay className={"bg-gray-600 opacity-80 fixed inset-0 z-30"}/>
+                        <Dialog.Content
+                            className={"fixed top-[50%] left-[50%] z-40 max-h-[100vh] max-w-5xl translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none"}>
+                            <Dialog.Title className={"font-bold text-xl"}>Add fencers</Dialog.Title>
+                            {lines.length === 0 ? <form onSubmit={async (event) => {
+                                    event.preventDefault();
+                                    if (fileForm.file && fileForm.file.type === "text/csv") {
+                                        setLines(await fileForm.file.text().then(contents => {
+                                            const newLines = contents.split("\n")
+                                            if (newLines.slice(fileForm.hasHeader ? 1 : 0).every(line => {
+                                                return line.split(",").length === 4 && (line.split(",")[2].toUpperCase() === "M" || line.split(",")[2].toUpperCase() === "F")
+                                            })) {
+                                                return newLines
+                                            } else {
+                                                setFileError("Invalid CSV. Accepted format: first_name,last_name,gender,club")
+                                                return []
+                                            }
+                                        }).catch(err => {
+                                            return []
+                                        }))
+                                    }
+                                }}>
+                                    <div className={"w-full print:hidden ml-2"}>
+                                        <div className={"p-2 pt-4"}>
+                                            <input type={"file"} className={fileError != "" ? "border-red-600" : ""}
+                                                   accept={"text/csv"} id={"fencerFile"} onChange={e => {
+                                                setFileForm(current => {
+                                                    return {
+                                                        ...current,
+                                                        file: e.target.files != null ? e.target.files[0] : null
+                                                    }
+                                                })
+                                                setFileError("")
+                                            }}/>
+                                        </div>
+                                        {fileError != "" && <span className={"text-red-600"}>{fileError}</span>}
+                                        <div className={"p-2"}>
+                                            <input type={"checkbox"} onChange={e => {
+                                                setFileForm(current => {
+                                                    return {...current, hasHeader: e.target.checked}
+                                                })
+                                            }} checked={fileForm.hasHeader} id={"headerCheckbox"}
+                                                   className={"h-5 w-5 justify-center"}/>
+                                            <label htmlFor={"headerCheckbox"} className={"pl-2"}>
+                                                Header line
+                                            </label>
+                                        </div>
+                                        <div className={"flex w-full justify-end"}>
+                                            <button type={"submit"}
+                                                    className={"border rounded px-2 justify-end print:hidden"}>Upload
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form> :
+                                <div>
+                                    <div className={"border max-h-[400px] overflow-scroll mx-2 my-4 p-1"}>
+                                        <table>
+                                            <thead>
+                                            <tr>
+                                                <th>First Name</th>
+                                                <th>Last Name</th>
+                                                <th>Gender</th>
+                                                <th>Club</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {lines.slice(fileForm.hasHeader ? 1 : 0).map(line => {
+                                                return <tr>{line.split(",").map(value => {
+                                                    return <td className={"px-4"}>{value}</td>
+                                                })}</tr>
+                                            })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <Dialog.Close className={"flex w-full justify-end"}>
+                                        <button className={"border rounded px-2 print:hidden flex justify-end"}
+                                                onClick={addFencersFromCSV}>Add fencers
+                                        </button>
+                                    </Dialog.Close>
+                                </div>}
+                        </Dialog.Content>
+                    </Dialog.Portal>
+                </Dialog.Root>
                 {table.length > 0 ?
                     <div className={printTarget === "table" ? " print-visible" : " print:hidden"}>
                         <table className={"mt-8"}
@@ -548,6 +690,7 @@ function Event(props: eventProps) {
                                 <th className={"w-20"}>SoS</th>
                                 <th className={"w-20"}>SoV</th>
                                 <th className={""}></th>
+                                <th className={""}></th>
                             </tr>
                             </thead>
                             {table.map(((fencer, index) => (
@@ -559,7 +702,8 @@ function Event(props: eventProps) {
                                     </td>
                                     <td className={" p-0"}
                                         onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
-                                        <div className={getColour(fencer) + " pl-2 w-full"}>{fencer.firstName} {fencer.lastName}</div>
+                                        <div
+                                            className={getColour(fencer) + " pl-2 w-full"}>{fencer.firstName} {fencer.lastName}</div>
                                     </td>
                                     <td className={"font-semibold text-center border-black border-l p-0"}
                                         onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
@@ -575,7 +719,8 @@ function Event(props: eventProps) {
                                     </td>
                                     <td className={"text-center border-black border-l p-0"}
                                         onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
-                                        <div className={getColour(fencer)}>{fencer.hitsScored - fencer.hitsRecieved}</div>
+                                        <div
+                                            className={getColour(fencer)}>{fencer.hitsScored - fencer.hitsRecieved}</div>
                                     </td>
                                     <td className={"text-center border-black border-l p-0"}
                                         onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
@@ -588,12 +733,171 @@ function Event(props: eventProps) {
                                     <td className={"items-center border-black border-l p-0 print:hidden print:border-0"}>
                                         <div className={getColour(fencer) + " w-6 h-6"}>
                                             {!fencer.removed &&
-                                                <Dialog.Root>
+                                                <Dialog.Root onOpenChange={open => {
+                                                    if (open) {
+                                                        setFencerForm({
+                                                            firstName: fencer.firstName,
+                                                            lastName: fencer.lastName,
+                                                            gender: fencer.gender,
+                                                            club: fencer.club
+                                                        })
+                                                    } else {
+                                                        setFencerForm(current => {
+                                                            return {
+                                                                firstName: "",
+                                                                lastName: "",
+                                                                gender: current.gender,
+                                                                club: ""
+                                                            }
+                                                        })
+                                                    }
+                                                    editDialogOpen.current[index] = open
+                                                }} open={editDialogOpen.current[index]}>
                                                     <Dialog.Trigger>
                                                         <a className={"hover:cursor-pointer"}>
                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                                 viewBox="0 0 24 24" strokeWidth={1.5}
+                                                                 stroke="currentColor"
+                                                                 className="w-5 h-5 mt-0.5 ml-0.5">
+                                                                <path strokeLinecap="round" strokeLinejoin="round"
+                                                                      d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"/>
+                                                            </svg>
+                                                        </a>
+                                                    </Dialog.Trigger>
+                                                    <Dialog.Portal>
+                                                        <Dialog.Overlay
+                                                            className={"bg-gray-600 opacity-80 fixed inset-0 z-30"}/>
+                                                        <Dialog.Content
+                                                            className={"fixed top-[50%] left-[50%] z-40 max-h-[100vh] max-w-5xl translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none"}>
+                                                            <Dialog.Title className={"font-bold text-xl"}>Edit
+                                                                fencer</Dialog.Title>
+                                                            <form onSubmit={(event) => {
+                                                                event.preventDefault();
+                                                                if (fencerForm.firstName !== "" && fencerForm.lastName !== "" && (fencerForm.gender === "M" || fencerForm.gender === "F")) {
+                                                                    const newFencers = fencers.map(value => {
+                                                                        if (value.id === fencer.id) {
+                                                                            return {
+                                                                                ...value,
+                                                                                firstName: fencerForm.firstName,
+                                                                                lastName: fencerForm.lastName,
+                                                                                gender: fencerForm.gender,
+                                                                                club: fencerForm.club
+                                                                            }
+                                                                        } else {
+                                                                            return value
+                                                                        }
+                                                                    })
+                                                                    const newTable = table.map(value => {
+                                                                        if (value.id === fencer.id) {
+                                                                            return {
+                                                                                ...value,
+                                                                                firstName: fencerForm.firstName,
+                                                                                lastName: fencerForm.lastName,
+                                                                                gender: fencerForm.gender,
+                                                                                club: fencerForm.club
+                                                                            }
+                                                                        } else {
+                                                                            return value
+                                                                        }
+                                                                    })
+                                                                    setFencers(newFencers)
+                                                                    setTable(newTable)
+                                                                    editDialogOpen.current[index] = false
+                                                                }
+                                                            }}>
+                                                                <div className={"w-full print:hidden ml-2"}>
+                                                                    <div className={"my-2"}>
+                                                                        <label htmlFor={"firstName"}>First Name</label>
+                                                                        <div>
+                                                                            <input
+                                                                                type={"text"}
+                                                                                className={"border rounded w-96 p-1"}
+                                                                                id={"firstName"}
+                                                                                value={fencerForm.firstName}
+                                                                                onChange={e => {
+                                                                                    setFencerForm({
+                                                                                        ...fencerForm,
+                                                                                        firstName: e.target.value
+                                                                                    })
+                                                                                }
+                                                                                }
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className={"my-2"}>
+                                                                        <label htmlFor={"lastName"}>Last Name</label>
+                                                                        <div>
+                                                                            <input
+                                                                                type={"text"}
+                                                                                className={"border rounded w-96 p-1"}
+                                                                                id={"lastName"}
+                                                                                value={fencerForm.lastName}
+                                                                                onChange={e => {
+                                                                                    setFencerForm({
+                                                                                        ...fencerForm,
+                                                                                        lastName: e.target.value
+                                                                                    })
+                                                                                }
+                                                                                }
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className={"my-2"}>
+                                                                        <label>Gender</label>
+                                                                        <div>
+                                                                            <select value={fencerForm.gender}
+                                                                                    onChange={e => {
+                                                                                        setFencerForm({
+                                                                                            ...fencerForm,
+                                                                                            gender: e.target.value
+                                                                                        })
+                                                                                    }} className={"p-1 rounded pl-2"}>
+                                                                                <option value={"M"}>Male</option>
+                                                                                <option value={"F"}>Female</option>
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className={"my-2"}>
+                                                                        <label htmlFor={"club"}>Club</label>
+                                                                        <div>
+                                                                            <input
+                                                                                type={"text"}
+                                                                                className={"border rounded w-96 p-1"}
+                                                                                id={"club"}
+                                                                                value={fencerForm.club}
+                                                                                onChange={e => {
+                                                                                    setFencerForm({
+                                                                                        ...fencerForm,
+                                                                                        club: e.target.value
+                                                                                    })
+                                                                                }
+                                                                                }
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className={"flex w-full justify-end"}>
+                                                                        <button type={"submit"}
+                                                                                className={"border rounded px-2 justify-end print:hidden"}>Save
+                                                                            Changes
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </form>
+                                                        </Dialog.Content>
+                                                    </Dialog.Portal>
+                                                </Dialog.Root>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td className={"items-center border-black border-l p-0 print:hidden print:border-0"}>
+                                        <div className={getColour(fencer) + " w-6 h-6"}>
+                                            {!fencer.removed &&
+                                                <Dialog.Root>
+                                                    <Dialog.Trigger disabled={started}>
+                                                        <a className={started ? "opacity-90" : "hover:cursor-pointer"}>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                                  viewBox="0 0 24 24"
-                                                                 strokeWidth={1.5} stroke="red" className="w-6 h-6">
+                                                                 strokeWidth={1.5} stroke={started ? "grey" : "red"} className="w-6 h-6">
                                                                 <path strokeLinecap="round" strokeLinejoin="round"
                                                                       d="M6 18L18 6M6 6l12 12"/>
                                                             </svg>
@@ -604,7 +908,9 @@ function Event(props: eventProps) {
                                                             className={"bg-gray-600 opacity-80 fixed inset-0 z-30"}/>
                                                         <Dialog.Content
                                                             className={"fixed top-[50%] left-[50%] z-40 max-h-[100vh] max-w-5xl translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none"}>
-                                                            <Dialog.Title className={"font-bold text-xl"}>Are you sure you want to remove {fencer.firstName} {fencer.lastName}?</Dialog.Title>
+                                                            <Dialog.Title className={"font-bold text-xl"}>Are you sure
+                                                                you want to
+                                                                remove {fencer.firstName} {fencer.lastName}?</Dialog.Title>
                                                             <div className={"ml-4 mt-4"}>
                                                                 <div>
                                                                     This cannot be undone.
@@ -638,7 +944,7 @@ function Event(props: eventProps) {
                                                     fencer.points === 3 ? "bg-blue-400" :
                                                         fencer.points === 4 ? "bg-purple-400" : "bg-amber-300")}>
                                         <td className={"pl-2 border-black border-t"}
-                                            colSpan={9}>{fencer.results.map((result) => {
+                                            colSpan={10}>{fencer.results.map((result) => {
                                             return <div>{result.opponent !== -1 ? `vs ${
                                                 (() => {
                                                     const opponent = table.find(fencer => fencer.id === result.opponent)
@@ -659,16 +965,19 @@ function Event(props: eventProps) {
                             sum of
                             points scored by people you beat</p>
                         <div className={"flex"}>
-                            <button onClick={() => print("table")} className={"border rounded px-1 mt-2 print:hidden flex"}>
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
+                            <button onClick={() => print("table")}
+                                    className={"border rounded px-1 mt-2 print:hidden flex"}>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                     strokeWidth={1.5}
                                      stroke="currentColor" className="size-6 w-4 h-4 mt-auto mb-auto">
                                     <path strokeLinecap="round" strokeLinejoin="round"
                                           d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/>
                                 </svg>
                                 <span className={"ml-1 mb-0.5"}>Print Table</span></button>
-                            <button onClick={() => exportToXML("results.xml")}
+                            <button onClick={() => exportToXML(`${props.competition.name}-${props.competition.events[props.eventIndex].name}.xml`)}
                                     className={"border rounded px-2 mt-2 ml-2 print:hidden flex"}>
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                     strokeWidth={1.5}
                                      stroke="currentColor" className="size-6 w-4 h-4 mt-auto mb-auto mr-1">
                                     <path strokeLinecap="round" strokeLinejoin="round"
                                           d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
@@ -677,7 +986,8 @@ function Event(props: eventProps) {
                             </button>
                             <button onClick={() => exportToCSV("seedings.csv")}
                                     className={"border rounded px-2 mt-2 ml-2 print:hidden flex"}>
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                     strokeWidth={1.5}
                                      stroke="currentColor" className="size-6 w-4 h-4 mt-auto mb-auto mr-1">
                                     <path strokeLinecap="round" strokeLinejoin="round"
                                           d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
@@ -698,10 +1008,12 @@ function Event(props: eventProps) {
                                     className={"bg-gray-600 opacity-80 fixed inset-0 z-30"}/>
                                 <Dialog.Content
                                     className={"fixed top-[50%] left-[50%] z-40 max-h-[100vh] max-w-5xl translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none"}>
-                                    <Dialog.Title className={"font-bold text-xl"}>Are you sure you want to reset matchmaking?</Dialog.Title>
+                                    <Dialog.Title className={"font-bold text-xl"}>Are you sure you want to reset
+                                        matchmaking?</Dialog.Title>
                                     <div className={"ml-4 mt-4"}>
                                         <div className={"max-w-[400px]"}>
-                                            This will mean that bouts up to this point will not impact how bouts are assigned. This cannot be undone.
+                                            This will mean that bouts up to this point will not impact how bouts are
+                                            assigned. This cannot be undone.
                                         </div>
                                         <div className={"flex justify-end mt-4"}>
                                             <Dialog.Close>
@@ -723,38 +1035,44 @@ function Event(props: eventProps) {
                     </div> : ""}
             </div>
             <div className={"max-lg:ml-8 " + (printTarget === "bouts" ? "print-visible" : "print:hidden")}>
-                {started ? <p className={"mt-8 font-semibold "}>Round {rounds} Bouts</p> : ""}
+                {roundNum > 0 ? <div className={"mt-8 flex"}>
+                    {rounds.map((round, index) => {
+                        if (round.bouts.length > 0) {
+                            return <p className={"mr-2 " + (index === activeRound ? "font-semibold" : "text-sky-500 hover:cursor-pointer hover:underline print:hidden")} onClick={() => setActiveRound(index)}>Round {index + 1}</p>
+                        }
+                    })}
+                </div> : ""}
                 <form id={"roundForm"} onSubmit={endRound} className={"m-2 "}>
-                    {started && rounds > 0 && bouts[rounds - 1].map(bout => (
+                    {roundNum > 0 && rounds[activeRound] && rounds[activeRound].bouts.map(bout => (
                         <div className={"p-4 print:w-full"}>
                             <div className={"inline-block w-1/3 mr-4 print:w-2/5"}>
                                 <input className={"peer hidden"} type='radio' value={bout.fencer1.id}
                                        id={bout.fencer1.id.toString()} name={bout.id.toString()} required
-                                       onClick={() => updateBout(bout.id, bout.fencer1.id)} checked={bout.winner === bout.fencer1.id}></input>
+                                       onClick={() => updateBout(bout.id, bout.fencer1.id)} checked={bout.winner === bout.fencer1.id} disabled={activeRound !== rounds.length - 1}></input>
                                 <label htmlFor={bout.fencer1.id.toString()}
-                                       className={"p-8 flex w-full rounded border-2 peer-checked:border-green-600 peer-checked:border-[3px] peer-checked:font-semibold peer-checked:text-green-800 " + (bout.winner !== bout.fencer1.id && bout.winner !== -1 ? "text-red-700 border-red-600" : "")}>{bout.fencer1.firstName + " "} {bout.fencer1.lastName}</label>
+                                       className={"p-8 flex w-full rounded border-2 peer-checked:border-green-600 peer-checked:border-[3px] peer-checked:font-semibold peer-checked:text-green-800 " + (bout.winner !== bout.fencer1.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : "") + (activeRound === rounds.length - 1 ? "hover:cursor-pointer" : "")}>{bout.fencer1.firstName + " "} {bout.fencer1.lastName}</label>
                             </div>
                             <input type={"number"} className={"w-8 p-1 justify-items-center border-2 border-black rounded " + (bout.winner !== -1 ? bout.winner === bout.fencer1.id ? "text-green-800 border-green-600 border-[3px]" : "text-red-700 border-red-600" : "")}
-                                   min={0} id={bout.fencer1.id.toString() + "_score"} style={{marginRight: '4px'}} required value={bout.score1} onInput={(event) => updateBoutScore(bout.id, event.currentTarget.valueAsNumber, undefined)}/>
+                                   min={0} id={bout.fencer1.id.toString() + "_score"} style={{marginRight: '4px'}} required value={bout.score1 ?? ""} onInput={(event) => updateBoutScore(bout.id, event.currentTarget.valueAsNumber, undefined)} disabled={activeRound !== rounds.length - 1}/>
                             vs
                             <input type={"number"} className={"w-8 p-1 justify-items-center border-2 border-black rounded ml-8 " + (bout.winner !== -1 ? bout.winner === bout.fencer2.id ? "text-green-800 border-green-600 border-[3px]" : "text-red-700 border-red-600" : "")}
-                                   min={0} id={bout.fencer2.id.toString() + "_score"} style={{marginLeft: '4px'}} required value={bout.score2}  onInput={(event) => updateBoutScore(bout.id, undefined, event.currentTarget.valueAsNumber)}/>
+                                   min={0} id={bout.fencer2.id.toString() + "_score"} style={{marginLeft: '4px'}} required value={bout.score2 ?? ""}  onInput={(event) => updateBoutScore(bout.id, undefined, event.currentTarget.valueAsNumber)} disabled={activeRound !== rounds.length - 1}/>
                             <div className={"inline-block w-1/3 ml-4 print:w-2/5"}>
                                 <input className={"peer hidden"} type='radio' value={bout.fencer2.id}
                                        id={bout.fencer2.id.toString()} name={bout.id.toString()}
-                                       onClick={() => updateBout(bout.id, bout.fencer2.id)} checked={bout.winner === bout.fencer2.id}></input>
+                                       onClick={() => updateBout(bout.id, bout.fencer2.id)} checked={bout.winner === bout.fencer2.id} disabled={activeRound !== rounds.length - 1}></input>
                                 <label htmlFor={bout.fencer2.id.toString()}
-                                       className={"p-8 flex w-full rounded border-2 peer-checked:border-green-600 peer-checked:border-[3px] peer-checked:font-semibold peer-checked:text-green-800 " + (bout.winner !== bout.fencer2.id && bout.winner !== -1 ? "text-red-700 border-red-600" : "")}>{" " + bout.fencer2.firstName} {bout.fencer2.lastName}</label>
+                                       className={"p-8 flex w-full rounded border-2 peer-checked:border-green-600 peer-checked:border-[3px] peer-checked:font-semibold peer-checked:text-green-800 " + (bout.winner !== bout.fencer2.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : "") + (activeRound === rounds.length - 1 ? "hover:cursor-pointer" : "")}>{" " + bout.fencer2.firstName} {bout.fencer2.lastName}</label>
                             </div>
                         </div>
                     ))}
-                    {started && bye ? <p>Bye: {bye.firstName} {bye.lastName}</p> : ""}
-                    {started ? <button onClick={() => print("bouts")} className={"border rounded px-1 mt-2 print:hidden flex"}><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 w-4 h-4 mt-auto mb-auto">
+                    {roundNum > 0 && rounds[activeRound] && rounds[activeRound].bye ? <p>Bye: {rounds[activeRound].bye.firstName} {rounds[activeRound].bye.lastName}</p> : ""}
+                    {roundNum > 0 ? <button type={"button"} onClick={() => print("bouts")} className={"border rounded px-1 mt-2 print:hidden flex"}><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 w-4 h-4 mt-auto mb-auto">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
                     </svg>
                         <span className={"ml-1 mb-0.5"}>Print Bouts</span></button> : ""}
-                    {started ? <button type={"submit"} className={"border rounded px-2 mt-6 print:hidden"}>End Round</button> : ""}
-                    {started ? <Dialog.Root>
+                    {started && activeRound === rounds.length - 1 ? <button type={"submit"} className={"border rounded px-2 mt-6 print:hidden"}>End Round</button> : ""}
+                    {started && activeRound === rounds.length - 1 ? <Dialog.Root>
                         <Dialog.Trigger>
                             <button type={"button"}
                                     className={"border rounded px-2 mt-6 ml-2 print:hidden"}>Cancel Round

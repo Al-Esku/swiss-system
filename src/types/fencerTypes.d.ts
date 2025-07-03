@@ -39,6 +39,11 @@ type individual = {
     cost: number
 }
 
+type round = {
+    bouts: bout[],
+    bye: undefined|fencer
+}
+
 type fencerForm = {
     firstName: string,
     lastName: string,
@@ -53,4 +58,9 @@ type competition = {
 
 type event = {
     name: string
+}
+
+type fileForm = {
+    file: File | null,
+    hasHeader: boolean
 }
