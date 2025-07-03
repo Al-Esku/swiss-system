@@ -17,7 +17,7 @@ function Competition(props: compProps) {
     if (!uuid.current) {
         uuid.current = uuidv4()
     }
-    const socket = React.useRef<WebSocket>(new WebSocket(`ws://localhost:8081?uuid=${uuid.current}&origin=${!props.client}`));
+    const socket = React.useRef<WebSocket>(new WebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_URL}?uuid=${uuid.current}&origin=${!props.client}`));
     socket.current.onclose = () => {
         setTimeout(connect, 1000)
     }
@@ -41,7 +41,7 @@ function Competition(props: compProps) {
     }, [competition])
 
     function connect() {
-        socket.current = new WebSocket(`ws://localhost:8081?uuid=${uuid.current}&origin=${!props.client}`)
+        socket.current = new WebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_URL}?uuid=${uuid.current}&origin=${!props.client}`)
 
         if (props.client) {
             socket.current.addEventListener("message", (event) => {
