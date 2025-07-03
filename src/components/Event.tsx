@@ -8,11 +8,17 @@ let nextBoutId = 0;
 type eventProps = {
     competition: competition,
     setCompetition: (comp: competition) => void,
-    eventIndex: number
+    eventIndex: number,
+    uuid: string
 }
 
 function Event(props: eventProps) {
-    const [fencerForm, setFencerForm] = React.useState<fencerForm>({firstName: "", lastName: "", gender: "M", club: ""})
+    const [fencerForm, setFencerForm] = React.useState<fencerForm>({
+        firstName: "",
+        lastName: "",
+        gender: "M",
+        club: ""
+    });
     const [table, setTable] = React.useState<fencer[]>([])
     const [fencers, setFencers] = React.useState<fencer[]>([])
     const [rounds, setRounds] = React.useState<round[]>([{bouts: [], bye: undefined}])
@@ -339,12 +345,11 @@ function Event(props: eventProps) {
 
     const updateBoutScore = (id: number, score1: number|undefined, score2: number|undefined) => {
         const newBouts = rounds[roundNum-1].bouts.map(bout => {
-            console.log(0 !== undefined)
             if (bout.id === id) {
                 return {
                     ...bout,
-                    score1: score1 !== undefined ? score1 : bout.score1,
-                    score2: score2 !== undefined ? score2 : bout.score2
+                    score1: score1 ?? bout.score1,
+                    score2: score2 ?? bout.score2
                 }
             } else {
                 return bout
@@ -455,8 +460,8 @@ function Event(props: eventProps) {
         <div className={"grid lg:grid-cols-2"}>
             <div className={"m-8"}>
                 <Dialog.Root>
-                    <Dialog.Trigger>
-                        <button className={"border rounded px-2 print:hidden " + (started && "opacity-70")} disabled={started}>Add fencers</button>
+                    <Dialog.Trigger disabled={started}>
+                        <a className={"border rounded px-2 print:hidden " + (started && "opacity-70")}>Add fencers</a>
                     </Dialog.Trigger>
                     <Dialog.Portal>
                         <Dialog.Overlay className={"bg-gray-600 opacity-80 fixed inset-0 z-30"}/>
@@ -588,8 +593,8 @@ function Event(props: eventProps) {
                         setLines([])
                     }
                 }}>
-                    <Dialog.Trigger>
-                        <button className={"border rounded px-2 print:hidden ml-2 " + (started && "opacity-70")} disabled={started}>Add fencers from CSV</button>
+                    <Dialog.Trigger disabled={started}>
+                        <a className={"border rounded px-2 print:hidden ml-2 " + (started && "opacity-70")}>Add fencers from CSV</a>
                     </Dialog.Trigger>
                     <Dialog.Portal>
                         <Dialog.Overlay className={"bg-gray-600 opacity-80 fixed inset-0 z-30"}/>
@@ -658,18 +663,18 @@ function Event(props: eventProps) {
                                             </tr>
                                             </thead>
                                             <tbody>
-                                            {lines.slice(fileForm.hasHeader ? 1 : 0).map(line => {
-                                                return <tr>{line.split(",").map(value => {
-                                                    return <td className={"px-4"}>{value}</td>
-                                                })}</tr>
-                                            })}
+                                            {lines.slice(fileForm.hasHeader ? 1 : 0).map(((line, lineIndex) => {
+                                                return <tr key={lineIndex}>{line.split(",").map(((value, valueIndex) => {
+                                                    return <td key={valueIndex} className={"px-4"}>{value}</td>
+                                                }))}</tr>
+                                            }))}
                                             </tbody>
                                         </table>
                                     </div>
                                     <Dialog.Close className={"flex w-full justify-end"}>
-                                        <button className={"border rounded px-2 print:hidden flex justify-end"}
+                                        <a className={"border rounded px-2 print:hidden flex justify-end"}
                                                 onClick={addFencersFromCSV}>Add fencers
-                                        </button>
+                                        </a>
                                     </Dialog.Close>
                                 </div>}
                         </Dialog.Content>
@@ -694,7 +699,7 @@ function Event(props: eventProps) {
                             </tr>
                             </thead>
                             {table.map(((fencer, index) => (
-                                <tbody className={"border border-black border-solid m-0 bg-gray-500 p-0"}>
+                                <tbody className={"border border-black border-solid m-0 bg-gray-500 p-0"} key={index}>
                                 <tr className={"m-0"}>
                                     <td className={"border-black border-r p-0"}
                                         onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
@@ -917,15 +922,15 @@ function Event(props: eventProps) {
                                                                 </div>
                                                                 <div className={"flex justify-end mt-4"}>
                                                                     <Dialog.Close>
-                                                                        <button
+                                                                        <a
                                                                             className={"px-2 py-1 rounded border border-red-600 bg-red-300 hover:bg-red-600 hover:text-white mr-2"}
                                                                             onClick={() => removeFencer(fencer.id)}>Remove
-                                                                        </button>
+                                                                        </a>
                                                                     </Dialog.Close>
                                                                     <Dialog.Close>
-                                                                        <button
+                                                                        <a
                                                                             className={"px-2 py-1 rounded border border-gray-600 bg-gray-200 hover:bg-gray-600 hover:text-white"}>Cancel
-                                                                        </button>
+                                                                        </a>
                                                                     </Dialog.Close>
                                                                 </div>
                                                             </div>
@@ -944,8 +949,8 @@ function Event(props: eventProps) {
                                                     fencer.points === 3 ? "bg-blue-400" :
                                                         fencer.points === 4 ? "bg-purple-400" : "bg-amber-300")}>
                                         <td className={"pl-2 border-black border-t"}
-                                            colSpan={10}>{fencer.results.map((result) => {
-                                            return <div>{result.opponent !== -1 ? `vs ${
+                                            colSpan={10}>{fencer.results.map((result, index) => {
+                                            return <div key={index}>{result.opponent !== -1 ? `vs ${
                                                 (() => {
                                                     const opponent = table.find(fencer => fencer.id === result.opponent)
                                                     return opponent ? `${opponent.firstName} ${opponent.lastName}` : "[Removed]"
@@ -999,9 +1004,9 @@ function Event(props: eventProps) {
                                 className={"border rounded px-2 mt-6 print:hidden"}>{started ? "Shuffle Bouts" : "Start Round"}</button>
                         <Dialog.Root>
                             <Dialog.Trigger>
-                                <button
+                                <a
                                     className={"border rounded px-2 mt-2 ml-2 print:hidden"}>Reset Matchmaking
-                                </button>
+                                </a>
                             </Dialog.Trigger>
                             <Dialog.Portal>
                                 <Dialog.Overlay
@@ -1017,15 +1022,15 @@ function Event(props: eventProps) {
                                         </div>
                                         <div className={"flex justify-end mt-4"}>
                                             <Dialog.Close>
-                                                <button
+                                                <a
                                                     className={"px-2 py-1 rounded border border-red-600 bg-red-300 hover:bg-red-600 hover:text-white mr-2"}
                                                     onClick={resetPairings}>Reset
-                                                </button>
+                                                </a>
                                             </Dialog.Close>
                                             <Dialog.Close>
-                                                <button
+                                                <a
                                                     className={"px-2 py-1 rounded border border-gray-600 bg-gray-200 hover:bg-gray-600 hover:text-white"}>Cancel
-                                                </button>
+                                                </a>
                                             </Dialog.Close>
                                         </div>
                                     </div>
@@ -1038,17 +1043,17 @@ function Event(props: eventProps) {
                 {roundNum > 0 ? <div className={"mt-8 flex"}>
                     {rounds.map((round, index) => {
                         if (round.bouts.length > 0) {
-                            return <p className={"mr-2 " + (index === activeRound ? "font-semibold" : "text-sky-500 hover:cursor-pointer hover:underline print:hidden")} onClick={() => setActiveRound(index)}>Round {index + 1}</p>
+                            return <p key={index} className={"mr-2 " + (index === activeRound ? "font-semibold" : "text-sky-500 hover:cursor-pointer hover:underline print:hidden")} onClick={() => setActiveRound(index)}>Round {index + 1}</p>
                         }
                     })}
                 </div> : ""}
                 <form id={"roundForm"} onSubmit={endRound} className={"m-2 "}>
-                    {roundNum > 0 && rounds[activeRound] && rounds[activeRound].bouts.map(bout => (
-                        <div className={"p-4 print:w-full"}>
+                    {roundNum > 0 && rounds[activeRound] && rounds[activeRound].bouts.map((bout, index) => (
+                        <div className={"p-4 print:w-full"} key={index}>
                             <div className={"inline-block w-1/3 mr-4 print:w-2/5"}>
                                 <input className={"peer hidden"} type='radio' value={bout.fencer1.id}
                                        id={bout.fencer1.id.toString()} name={bout.id.toString()} required
-                                       onClick={() => updateBout(bout.id, bout.fencer1.id)} checked={bout.winner === bout.fencer1.id} disabled={activeRound !== rounds.length - 1}></input>
+                                       onClick={() => updateBout(bout.id, bout.fencer1.id)} defaultChecked={bout.winner === bout.fencer1.id} disabled={activeRound !== rounds.length - 1}></input>
                                 <label htmlFor={bout.fencer1.id.toString()}
                                        className={"p-8 flex w-full rounded border-2 peer-checked:border-green-600 peer-checked:border-[3px] peer-checked:font-semibold peer-checked:text-green-800 " + (bout.winner !== bout.fencer1.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : "") + (activeRound === rounds.length - 1 ? "hover:cursor-pointer" : "")}>{bout.fencer1.firstName + " "} {bout.fencer1.lastName}</label>
                             </div>
@@ -1056,11 +1061,11 @@ function Event(props: eventProps) {
                                    min={0} id={bout.fencer1.id.toString() + "_score"} style={{marginRight: '4px'}} required value={bout.score1 ?? ""} onInput={(event) => updateBoutScore(bout.id, event.currentTarget.valueAsNumber, undefined)} disabled={activeRound !== rounds.length - 1}/>
                             vs
                             <input type={"number"} className={"w-8 p-1 justify-items-center border-2 border-black rounded ml-8 " + (bout.winner !== -1 ? bout.winner === bout.fencer2.id ? "text-green-800 border-green-600 border-[3px]" : "text-red-700 border-red-600" : "")}
-                                   min={0} id={bout.fencer2.id.toString() + "_score"} style={{marginLeft: '4px'}} required value={bout.score2 ?? ""}  onInput={(event) => updateBoutScore(bout.id, undefined, event.currentTarget.valueAsNumber)} disabled={activeRound !== rounds.length - 1}/>
+                                   min={0} id={bout.fencer2.id.toString() + "_score"} style={{marginLeft: '4px'}} required value={bout.score2 ?? ""} onInput={(event) => updateBoutScore(bout.id, undefined, event.currentTarget.valueAsNumber)} disabled={activeRound !== rounds.length - 1}/>
                             <div className={"inline-block w-1/3 ml-4 print:w-2/5"}>
                                 <input className={"peer hidden"} type='radio' value={bout.fencer2.id}
                                        id={bout.fencer2.id.toString()} name={bout.id.toString()}
-                                       onClick={() => updateBout(bout.id, bout.fencer2.id)} checked={bout.winner === bout.fencer2.id} disabled={activeRound !== rounds.length - 1}></input>
+                                       onClick={() => updateBout(bout.id, bout.fencer2.id)} defaultChecked={bout.winner === bout.fencer2.id} disabled={activeRound !== rounds.length - 1}></input>
                                 <label htmlFor={bout.fencer2.id.toString()}
                                        className={"p-8 flex w-full rounded border-2 peer-checked:border-green-600 peer-checked:border-[3px] peer-checked:font-semibold peer-checked:text-green-800 " + (bout.winner !== bout.fencer2.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : "") + (activeRound === rounds.length - 1 ? "hover:cursor-pointer" : "")}>{" " + bout.fencer2.firstName} {bout.fencer2.lastName}</label>
                             </div>
@@ -1074,9 +1079,9 @@ function Event(props: eventProps) {
                     {started && activeRound === rounds.length - 1 ? <button type={"submit"} className={"border rounded px-2 mt-6 print:hidden"}>End Round</button> : ""}
                     {started && activeRound === rounds.length - 1 ? <Dialog.Root>
                         <Dialog.Trigger>
-                            <button type={"button"}
+                            <a type={"button"}
                                     className={"border rounded px-2 mt-6 ml-2 print:hidden"}>Cancel Round
-                            </button>
+                            </a>
                         </Dialog.Trigger>
                         <Dialog.Portal>
                             <Dialog.Overlay
@@ -1090,15 +1095,15 @@ function Event(props: eventProps) {
                                     </div>
                                     <div className={"flex justify-end mt-4"}>
                                         <Dialog.Close>
-                                            <button
+                                            <a
                                                 className={"px-2 py-1 rounded border border-red-600 bg-red-300 hover:bg-red-600 hover:text-white mr-2"}
                                                 onClick={cancelRound}>Yes, cancel round
-                                            </button>
+                                            </a>
                                         </Dialog.Close>
                                         <Dialog.Close>
-                                            <button
+                                            <a
                                                 className={"px-2 py-1 rounded border border-gray-600 bg-gray-200 hover:bg-gray-600 hover:text-white"}>No
-                                            </button>
+                                            </a>
                                         </Dialog.Close>
                                     </div>
                                 </div>

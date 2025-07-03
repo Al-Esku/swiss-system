@@ -57,7 +57,8 @@ type competition = {
 }
 
 type event = {
-    name: string
+    name: string,
+    uuid: string
 }
 
 type fileForm = {
