@@ -57,7 +57,10 @@ type competition = {
 }
 
 type event = {
-    name: string
+    name: string,
+    table: fencer[],
+    rounds: round[],
+    roundNum: number
 }
 
 type fileForm = {
