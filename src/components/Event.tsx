@@ -1148,7 +1148,7 @@ function Event(props: eventProps) {
                                        id={bout.fencer1.id.toString()} name={bout.id.toString()} required
                                        onClick={() => updateBout(bout.id, bout.fencer1.id)} defaultChecked={bout.winner === bout.fencer1.id} disabled={activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}></input>
                                 <label htmlFor={bout.fencer1.id.toString()}
-                                       className={"p-8 flex w-full rounded border-2 peer-checked:border-green-600 peer-checked:border-[3px] peer-checked:font-semibold peer-checked:text-green-800 " + (bout.winner !== bout.fencer1.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : "") + (activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{bout.fencer1.firstName + " "} {bout.fencer1.lastName}</label>
+                                       className={"p-8 flex w-full rounded border-2 " + (bout.winner !== bout.fencer1.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : bout.winner === bout.fencer1.id ? "border-green-600 border-[3px] font-semibold text-green-800 " : "") + (activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{bout.fencer1.firstName + " "} {bout.fencer1.lastName}</label>
                             </div>
                             <input type={"number"} className={"w-8 p-1 justify-items-center border-2 border-black rounded " + (bout.winner !== -1 ? bout.winner === bout.fencer1.id ? "text-green-800 border-green-600 border-[3px]" : "text-red-700 border-red-600" : "")}
                                    min={0} id={bout.fencer1.id.toString() + "_score"} style={{marginRight: '4px'}} required value={bout.score1 ?? ""} onInput={(event) => updateBoutScore(bout.id, event.currentTarget.valueAsNumber, undefined)} disabled={activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}/>
@@ -1160,7 +1160,7 @@ function Event(props: eventProps) {
                                        id={bout.fencer2.id.toString()} name={bout.id.toString()}
                                        onClick={() => updateBout(bout.id, bout.fencer2.id)} defaultChecked={bout.winner === bout.fencer2.id} disabled={activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}></input>
                                 <label htmlFor={bout.fencer2.id.toString()}
-                                       className={"p-8 flex w-full rounded border-2 peer-checked:border-green-600 peer-checked:border-[3px] peer-checked:font-semibold peer-checked:text-green-800 " + (bout.winner !== bout.fencer2.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : "") + (activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{" " + bout.fencer2.firstName} {bout.fencer2.lastName}</label>
+                                       className={"p-8 flex w-full rounded border-2 " + (bout.winner !== bout.fencer2.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : bout.winner === bout.fencer2.id ? "border-green-600 border-[3px] font-semibold text-green-800 " : "") + (activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{" " + bout.fencer2.firstName} {bout.fencer2.lastName}</label>
                             </div>
                         </div>
                     ))}
