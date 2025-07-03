@@ -58,7 +58,9 @@ type competition = {
 
 type event = {
     name: string,
-    uuid: string
+    table: fencer[],
+    rounds: round[],
+    roundNum: number
 }
 
 type fileForm = {

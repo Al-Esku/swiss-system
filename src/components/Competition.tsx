@@ -69,7 +69,13 @@ function Competition(props: compProps) {
         if (name && name.value !== "") {
             setCompetition((current: competition | null) => ({
                 name: current?.name ?? "",
-                events: [...current?.events ?? [], {name: name.value, uuid: uuidv4()}]
+                events: [...current?.events ?? [], {
+                    name: name.value,
+                    table: [],
+                    rounds: [{bouts: [], bye: undefined}],
+                    roundNum: 0
+                }
+                ],
             }))
             setAddEventDialogOpen(false)
         }
@@ -158,7 +164,7 @@ function Competition(props: compProps) {
                 <div className={"w-full border-t"}>
                     {competition?.events.map((event, index) => {
                         return <div className={activeEvent !== index ? "hidden" : ""} key={index}>
-                            <Event competition={competition} setCompetition={setCompetition} eventIndex={index} uuid={event.uuid}></Event>
+                            <Event competition={competition} setCompetition={setCompetition} eventIndex={index}></Event>
                         </div>
                     })}
                 </div>
