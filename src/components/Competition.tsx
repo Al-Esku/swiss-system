@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import {useParams} from "react-router-dom";
 
 type compProps = {
-    readonly: boolean
+    client: boolean
 }
 
 function Competition(props: compProps) {
@@ -17,17 +17,43 @@ function Competition(props: compProps) {
     if (!uuid.current) {
         uuid.current = uuidv4()
     }
-    console.log(uuid.current)
-    const socket = new WebSocket(`ws://localhost/competitions/${uuid.current}`);
-    if (!props.readonly) {
-
-    } else {
-        socket.addEventListener("message", (event) => {
-            setCompetition(JSON.parse(event.data))
-            console.log("Message received")
-        })
+    const socket = React.useRef<WebSocket>(new WebSocket(`ws://localhost:8081?uuid=${uuid.current}&origin=${!props.client}`));
+    socket.current.onclose = () => {
+        setTimeout(connect, 1000)
     }
 
+    React.useEffect(() => {
+        if (props.client) {
+            socket.current.addEventListener("message", (event) => {
+                setCompetition(JSON.parse(event.data))
+                console.log(event.data)
+            })
+        }
+    }, [])
+
+    React.useEffect(() => {
+        if (socket.current.readyState === WebSocket.OPEN && !props.client) {
+            console.log("Sending changed competition state")
+            socket.current.send(JSON.stringify(competition))
+        } else {
+            console.log(socket.current.readyState)
+        }
+    }, [competition])
+
+    function connect() {
+        socket.current = new WebSocket(`ws://localhost:8081?uuid=${uuid.current}&origin=${!props.client}`)
+
+        if (props.client) {
+            socket.current.addEventListener("message", (event) => {
+                setCompetition(JSON.parse(event.data))
+                console.log(event.data)
+            })
+        }
+
+        socket.current.onclose = () => {
+            setTimeout(connect, 1000)
+        }
+    }
 
     function createCompetition(event: FormEvent) {
         event.preventDefault()

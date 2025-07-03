@@ -6,8 +6,8 @@ function App() {
         <div>
             <Router>
                 <Routes>
-                    <Route path={"/"} element={<Competition readonly={false}/>}></Route>
-                    <Route path={"/competitions/:uuid"} element={<Competition readonly={true}/>}></Route>
+                    <Route path={"/"} element={<Competition client={false}/>}></Route>
+                    <Route path={"/competitions/:uuid"} element={<Competition client={true}/>}></Route>
                 </Routes>
             </Router>
         </div>
