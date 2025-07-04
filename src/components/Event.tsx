@@ -30,6 +30,7 @@ function Event(props: eventProps) {
     const [lines, setLines] = React.useState<string[]>([])
     const [fileError, setFileError] = React.useState("")
     const [activeRound, setActiveRound] = React.useState(0)
+    const [pisteForm, setPisteForm] = React.useState("")
 
     const exportToXML = (filename: string) => {
         const date = new Date()
@@ -142,7 +143,9 @@ function Event(props: eventProps) {
                         score1:undefined,
                         score2:undefined,
                         winner:-1,
-                        cost: newFencers[i].results.some(result => result.opponent === newFencers[i+1].id) ? Math.abs(newFencers[i].points - newFencers[i+1].points) > 1 ? Math.abs(newFencers[i].points - newFencers[i+1].points) + 0.5 : 1.5 : Math.abs(newFencers[i].points - newFencers[i+1].points)})
+                        cost: newFencers[i].results.some(result => result.opponent === newFencers[i+1].id) ? Math.abs(newFencers[i].points - newFencers[i+1].points) > 1 ? Math.abs(newFencers[i].points - newFencers[i+1].points) + 0.5 : 1.5 : Math.abs(newFencers[i].points - newFencers[i+1].points),
+                        piste: undefined
+                    })
                 }
                 let cost = 0
                 if (newBye && Math.floor( (props.competition.events[props.eventIndex].roundNum - 1) / fencers.length) !== newBye.byes) {
@@ -159,6 +162,13 @@ function Event(props: eventProps) {
                     }
                 }
             }
+            optimal.bouts = optimal.bouts.map((bout, index) => {
+                if (props.competition.events[props.eventIndex].pistes.length > 0) {
+                    return {...bout, piste: props.competition.events[props.eventIndex].pistes[index % props.competition.events[props.eventIndex].pistes.length]}
+                } else {
+                    return bout
+                }
+            })
             props.setCompetition(current => ({
                 name: current?.name ?? "",
                 events: current?.events.map((event, index) => {
@@ -1134,69 +1144,207 @@ function Event(props: eventProps) {
                         }
                     })}
                 </div> : ""}
+                {!started && <Dialog.Root>
+                    <Dialog.Trigger disabled={started}>
+                        <a className={"border rounded px-2 mt-2 ml-2 print:hidden"}>
+                            Pistes
+                        </a>
+                    </Dialog.Trigger>
+                    <Dialog.Portal>
+                        <Dialog.Overlay
+                            className={"bg-gray-600 opacity-80 fixed inset-0 z-30"}/>
+                        <Dialog.Content
+                            className={"fixed top-[50%] left-[50%] z-40 max-h-[100vh] max-w-5xl translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none"}>
+                            <Dialog.Title className={"font-bold text-xl"}>Pistes</Dialog.Title>
+                            <div className={"ml-4 mt-4"}>
+                                {props.competition.events[props.eventIndex].pistes.map((piste, index) => {
+                                    return (
+                                        <div key={index}>{piste}</div>
+                                    )
+                                })}
+                                <form onSubmit={event => {
+                                    event.preventDefault()
+                                    props.setCompetition(current => ({
+                                        name: current?.name ?? "",
+                                        events: current?.events.map((event, index) => {
+                                            if (index !== props.eventIndex) {
+                                                return event
+                                            } else {
+                                                return {...event, pistes: [...event.pistes, pisteForm]}
+                                            }
+                                        }) ?? []
+                                    }))
+                                    setPisteForm("")
+                                }}>
+                                    <div className={"flex w-full"}>
+                                        <input type={"text"} value={pisteForm} onChange={event => setPisteForm(event.target.value)} className={"border rounded"}/>
+                                        <button type={"submit"} className={"border rounded px-2 ml-2 print:hidden"}>Add</button>
+                                    </div>
+                                </form>
+                                <div className={"flex justify-end mt-4"}>
+                                    <Dialog.Close>
+                                        <a
+                                            className={"px-2 py-1 rounded border border-gray-600 bg-gray-200 hover:bg-gray-600 hover:text-white"}>Close
+                                        </a>
+                                    </Dialog.Close>
+                                </div>
+                            </div>
+                        </Dialog.Content>
+                    </Dialog.Portal>
+                </Dialog.Root>}
                 <form id={"roundForm"} onSubmit={endRound} className={"m-2 "}>
-                    {props.competition.events[props.eventIndex].roundNum > 0 && props.competition.events[props.eventIndex].rounds[activeRound] && props.competition.events[props.eventIndex].rounds[activeRound].bouts.map((bout, index) => (
-                        <div className={"lg:p-4 print:w-full my-2"} key={index}>
-                            <div className={"inline-block w-1/3 sm:w-2/5 lg:w-1/3 lg:mr-4 print:w-2/5"}>
-                                <input className={"peer hidden"} type='radio' value={bout.fencer1.id}
-                                       id={bout.fencer1.id.toString()} name={bout.id.toString()} required
-                                       onClick={() => updateBout(bout.id, bout.fencer1.id)} defaultChecked={bout.winner === bout.fencer1.id} disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}></input>
+                    {props.competition.events[props.eventIndex].roundNum > 0 && props.competition.events[props.eventIndex].rounds[activeRound] && (props.competition.events[props.eventIndex].pistes.length > 0 && props.competition.events[props.eventIndex].rounds[activeRound].bouts.every((bout) => {return bout.piste !== undefined}) ? props.competition.events[props.eventIndex].pistes.map((piste, pisteIndex) => {
+                        return (
+                            <div key={pisteIndex}>
+                                <p className={"font-semibold flex justify-center"}>{piste}</p>
+                                {props.competition.events[props.eventIndex].rounds[activeRound].bouts.map((bout, boutIndex) => {
+                                    if (bout.piste === piste) {
+                                        return (
+                                            <div className={"lg:p-4 print:w-full my-2 flex justify-center"} key={boutIndex}>
+                                                <div
+                                                    className={"inline-block w-1/3 md:w-2/5"}>
+                                                    <input className={"peer hidden"} type='radio'
+                                                           value={bout.fencer1.id}
+                                                           id={bout.fencer1.id.toString()} name={bout.id.toString()}
+                                                           required
+                                                           onClick={() => updateBout(bout.id, bout.fencer1.id)}
+                                                           defaultChecked={bout.winner === bout.fencer1.id}
+                                                           disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}></input>
+                                                    <label htmlFor={bout.fencer1.id.toString()}
+                                                           className={"p-2 lg:p-8 flex w-full rounded border-2 " + (bout.winner !== bout.fencer1.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : bout.winner === bout.fencer1.id ? "border-green-600 border-[3px] font-semibold text-green-800 " : "") + (!props.client && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{bout.fencer1.firstName + " "} {bout.fencer1.lastName}</label>
+                                                </div>
+                                                <div className={"w-1/3 md:w-1/5 flex justify-center"}>
+                                                    <div className={"flex items-center"}>
+                                                        <input type={"number"}
+                                                               className={"w-8 p-1 justify-items-center border-2 border-black rounded " + (bout.winner !== -1 ? bout.winner === bout.fencer1.id ? "text-green-800 border-green-600 border-[3px]" : "text-red-700 border-red-600" : "")}
+                                                               min={0} id={bout.fencer1.id.toString() + "_score"}
+                                                               style={{marginRight: '4px'}} required
+                                                               value={bout.score1 ?? ""}
+                                                               onInput={(event) => updateBoutScore(bout.id, event.currentTarget.valueAsNumber, undefined)}
+                                                               disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}/>
+                                                        vs
+                                                        <input type={"number"}
+                                                               className={"w-8 p-1 justify-items-center border-2 border-black rounded ml-8 " + (bout.winner !== -1 ? bout.winner === bout.fencer2.id ? "text-green-800 border-green-600 border-[3px]" : "text-red-700 border-red-600" : "")}
+                                                               min={0} id={bout.fencer2.id.toString() + "_score"}
+                                                               style={{marginLeft: '4px'}} required
+                                                               value={bout.score2 ?? ""}
+                                                               onInput={(event) => updateBoutScore(bout.id, undefined, event.currentTarget.valueAsNumber)}
+                                                               disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}/>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    className={"inline-block w-1/3 md:w-2/5"}>
+                                                    <input className={"peer hidden"} type='radio'
+                                                           value={bout.fencer2.id}
+                                                           id={bout.fencer2.id.toString()} name={bout.id.toString()}
+                                                           onClick={() => updateBout(bout.id, bout.fencer2.id)}
+                                                           defaultChecked={bout.winner === bout.fencer2.id}
+                                                           disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}></input>
+                                                    <label htmlFor={bout.fencer2.id.toString()}
+                                                           className={"p-2 lg:p-8 flex w-full rounded border-2 " + (bout.winner !== bout.fencer2.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : bout.winner === bout.fencer2.id ? "border-green-600 border-[3px] font-semibold text-green-800 " : "") + (!props.client && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{" " + bout.fencer2.firstName} {bout.fencer2.lastName}</label>
+                                                </div>
+                                            </div>
+                                        )
+                                    }
+                                })}
+                            </div>
+                        )
+                    }) : props.competition.events[props.eventIndex].rounds[activeRound].bouts.map((bout, index) => (
+                        <div className={"lg:p-4 print:w-full my-2 flex justify-center"} key={index}>
+                            <div
+                                className={"inline-block w-1/3 md:w-2/5"}>
+                                <input className={"peer hidden"} type='radio'
+                                       value={bout.fencer1.id}
+                                       id={bout.fencer1.id.toString()} name={bout.id.toString()}
+                                       required
+                                       onClick={() => updateBout(bout.id, bout.fencer1.id)}
+                                       defaultChecked={bout.winner === bout.fencer1.id}
+                                       disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}></input>
                                 <label htmlFor={bout.fencer1.id.toString()}
                                        className={"p-2 lg:p-8 flex w-full rounded border-2 " + (bout.winner !== bout.fencer1.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : bout.winner === bout.fencer1.id ? "border-green-600 border-[3px] font-semibold text-green-800 " : "") + (!props.client && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{bout.fencer1.firstName + " "} {bout.fencer1.lastName}</label>
                             </div>
-                            <input type={"number"} className={"w-8 p-1 justify-items-center border-2 border-black rounded " + (bout.winner !== -1 ? bout.winner === bout.fencer1.id ? "text-green-800 border-green-600 border-[3px]" : "text-red-700 border-red-600" : "")}
-                                   min={0} id={bout.fencer1.id.toString() + "_score"} style={{marginRight: '4px'}} required value={bout.score1 ?? ""} onInput={(event) => updateBoutScore(bout.id, event.currentTarget.valueAsNumber, undefined)} disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}/>
-                            vs
-                            <input type={"number"} className={"w-8 p-1 justify-items-center border-2 border-black rounded ml-8 " + (bout.winner !== -1 ? bout.winner === bout.fencer2.id ? "text-green-800 border-green-600 border-[3px]" : "text-red-700 border-red-600" : "")}
-                                   min={0} id={bout.fencer2.id.toString() + "_score"} style={{marginLeft: '4px'}} required value={bout.score2 ?? ""} onInput={(event) => updateBoutScore(bout.id, undefined, event.currentTarget.valueAsNumber)} disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}/>
-                            <div className={"inline-block w-1/3 sm:w-2/5 lg:w-1/3 lg:ml-4 print:w-2/5"}>
-                                <input className={"peer hidden"} type='radio' value={bout.fencer2.id}
+                            <div className={"w-1/3 md:w-1/5 flex justify-center"}>
+                                <div className={"flex items-center"}>
+                                    <input type={"number"}
+                                           className={"w-8 p-1 justify-items-center border-2 border-black rounded " + (bout.winner !== -1 ? bout.winner === bout.fencer1.id ? "text-green-800 border-green-600 border-[3px]" : "text-red-700 border-red-600" : "")}
+                                           min={0} id={bout.fencer1.id.toString() + "_score"}
+                                           style={{marginRight: '4px'}} required
+                                           value={bout.score1 ?? ""}
+                                           onInput={(event) => updateBoutScore(bout.id, event.currentTarget.valueAsNumber, undefined)}
+                                           disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}/>
+                                    vs
+                                    <input type={"number"}
+                                           className={"w-8 p-1 justify-items-center border-2 border-black rounded ml-8 " + (bout.winner !== -1 ? bout.winner === bout.fencer2.id ? "text-green-800 border-green-600 border-[3px]" : "text-red-700 border-red-600" : "")}
+                                           min={0} id={bout.fencer2.id.toString() + "_score"}
+                                           style={{marginLeft: '4px'}} required
+                                           value={bout.score2 ?? ""}
+                                           onInput={(event) => updateBoutScore(bout.id, undefined, event.currentTarget.valueAsNumber)}
+                                           disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}/>
+                                </div>
+                            </div>
+                            <div
+                                className={"inline-block w-1/3 md:w-2/5"}>
+                                <input className={"peer hidden"} type='radio'
+                                       value={bout.fencer2.id}
                                        id={bout.fencer2.id.toString()} name={bout.id.toString()}
-                                       onClick={() => updateBout(bout.id, bout.fencer2.id)} defaultChecked={bout.winner === bout.fencer2.id} disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}></input>
+                                       onClick={() => updateBout(bout.id, bout.fencer2.id)}
+                                       defaultChecked={bout.winner === bout.fencer2.id}
+                                       disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}></input>
                                 <label htmlFor={bout.fencer2.id.toString()}
                                        className={"p-2 lg:p-8 flex w-full rounded border-2 " + (bout.winner !== bout.fencer2.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : bout.winner === bout.fencer2.id ? "border-green-600 border-[3px] font-semibold text-green-800 " : "") + (!props.client && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{" " + bout.fencer2.firstName} {bout.fencer2.lastName}</label>
                             </div>
                         </div>
-                    ))}
-                    {props.competition.events[props.eventIndex].roundNum > 0 && props.competition.events[props.eventIndex].rounds[activeRound] && props.competition.events[props.eventIndex].rounds[activeRound].bye ? <p>Bye: {props.competition.events[props.eventIndex].rounds[activeRound].bye?.firstName} {props.competition.events[props.eventIndex].rounds[activeRound].bye?.lastName}</p> : ""}
-                    {props.competition.events[props.eventIndex].roundNum > 0 && !props.client ? <button type={"button"} onClick={() => props.print("bouts")} className={"border rounded px-1 mt-2 print:hidden flex"}><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 w-4 h-4 mt-auto mb-auto">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
-                    </svg>
-                        <span className={"ml-1 mb-0.5"}>Print Bouts</span></button> : ""}
-                    {!props.client && started && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? <button type={"submit"} className={"border rounded px-2 mt-6 print:hidden"}>End Round</button> : ""}
-                    {!props.client && started && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? <Dialog.Root>
-                        <Dialog.Trigger>
-                            <a type={"button"}
-                                    className={"border rounded px-2 mt-6 ml-2 print:hidden"}>Cancel Round
-                            </a>
-                        </Dialog.Trigger>
-                        <Dialog.Portal>
-                            <Dialog.Overlay
-                                className={"bg-gray-600 opacity-80 fixed inset-0 z-30"}/>
-                            <Dialog.Content
-                                className={"fixed top-[50%] left-[50%] z-40 max-h-[100vh] max-w-5xl translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none"}>
-                                <Dialog.Title className={"font-bold text-xl"}>Are you sure you want to cancel the round?</Dialog.Title>
-                                <div className={"ml-4 mt-4"}>
-                                    <div>
-                                        This will not save any entered results and fencers may be assigned new bouts.
+                    )))}
+                    {props.competition.events[props.eventIndex].roundNum > 0 && props.competition.events[props.eventIndex].rounds[activeRound] && props.competition.events[props.eventIndex].rounds[activeRound].bye ?
+                        <p>Bye: {props.competition.events[props.eventIndex].rounds[activeRound].bye?.firstName} {props.competition.events[props.eventIndex].rounds[activeRound].bye?.lastName}</p> : ""}
+                    {props.competition.events[props.eventIndex].roundNum > 0 && !props.client ?
+                        <button type={"button"} onClick={() => props.print("bouts")}
+                                className={"border rounded px-1 mt-2 print:hidden flex"}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
+                                 stroke="currentColor" className="size-6 w-4 h-4 mt-auto mb-auto">
+                                <path strokeLinecap="round" strokeLinejoin="round"
+                                      d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/>
+                            </svg>
+                            <span className={"ml-1 mb-0.5"}>Print Bouts</span></button> : ""}
+                    {!props.client && started && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ?
+                        <button type={"submit"} className={"border rounded px-2 mt-6 print:hidden"}>End
+                            Round</button> : ""}
+                    {!props.client && started && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ?
+                        <Dialog.Root>
+                            <Dialog.Trigger>
+                                <a type={"button"}
+                                   className={"border rounded px-2 mt-6 ml-2 print:hidden"}>Cancel Round
+                                </a>
+                            </Dialog.Trigger>
+                            <Dialog.Portal>
+                                <Dialog.Overlay
+                                    className={"bg-gray-600 opacity-80 fixed inset-0 z-30"}/>
+                                <Dialog.Content
+                                    className={"fixed top-[50%] left-[50%] z-40 max-h-[100vh] max-w-5xl translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none"}>
+                                    <Dialog.Title className={"font-bold text-xl"}>Are you sure you want to cancel the
+                                        round?</Dialog.Title>
+                                    <div className={"ml-4 mt-4"}>
+                                        <div>
+                                            This will not save any entered results and fencers may be assigned new
+                                            bouts.
+                                        </div>
+                                        <div className={"flex justify-end mt-4"}>
+                                            <Dialog.Close>
+                                                <a
+                                                    className={"px-2 py-1 rounded border border-red-600 bg-red-300 hover:bg-red-600 hover:text-white mr-2"}
+                                                    onClick={cancelRound}>Yes, cancel round
+                                                </a>
+                                            </Dialog.Close>
+                                            <Dialog.Close>
+                                                <a
+                                                    className={"px-2 py-1 rounded border border-gray-600 bg-gray-200 hover:bg-gray-600 hover:text-white"}>No
+                                                </a>
+                                            </Dialog.Close>
+                                        </div>
                                     </div>
-                                    <div className={"flex justify-end mt-4"}>
-                                        <Dialog.Close>
-                                            <a
-                                                className={"px-2 py-1 rounded border border-red-600 bg-red-300 hover:bg-red-600 hover:text-white mr-2"}
-                                                onClick={cancelRound}>Yes, cancel round
-                                            </a>
-                                        </Dialog.Close>
-                                        <Dialog.Close>
-                                            <a
-                                                className={"px-2 py-1 rounded border border-gray-600 bg-gray-200 hover:bg-gray-600 hover:text-white"}>No
-                                            </a>
-                                        </Dialog.Close>
-                                    </div>
-                                </div>
-                            </Dialog.Content>
-                        </Dialog.Portal>
-                    </Dialog.Root> : ""}
+                                </Dialog.Content>
+                            </Dialog.Portal>
+                        </Dialog.Root> : ""}
                 </form>
             </div>
         </div>

@@ -75,7 +75,8 @@ function Competition(props: compProps) {
                     name: name.value,
                     table: [],
                     rounds: [{bouts: [], bye: undefined}],
-                    roundNum: 0
+                    roundNum: 0,
+                    pistes: []
                 }
                 ],
             }))

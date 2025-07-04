@@ -23,7 +23,8 @@ type bout = {
     score1: number|undefined,
     score2: number|undefined,
     winner: number,
-    cost: number
+    cost: number,
+    piste: string|undefined
 }
 
 type result = {
@@ -60,7 +61,8 @@ type event = {
     name: string,
     table: fencer[],
     rounds: round[],
-    roundNum: number
+    roundNum: number,
+    pistes: string[]
 }
 
 type fileForm = {
