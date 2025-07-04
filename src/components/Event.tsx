@@ -477,7 +477,7 @@ function Event(props: eventProps) {
                 fencer.points === 1 ? "bg-orange-300" :
                     fencer.points === 2 ? "bg-yellow-200" :
                         fencer.points === 3 ? "bg-green-300" :
-                            fencer.points === 4 ? "bg-cyan-600" :
+                            fencer.points === 4 ? "bg-teal-400" :
                                 fencer.points === 5 ? "bg-blue-400" :
                                     fencer.points === 6 ? "bg-indigo-600" :
                                         fencer.points === 7 ? "bg-violet-600" : "bg-amber-300")
@@ -1047,7 +1047,7 @@ function Event(props: eventProps) {
                                             fencer.points === 1 ? "bg-orange-300" :
                                                 fencer.points === 2 ? "bg-yellow-200" :
                                                     fencer.points === 3 ? "bg-green-300" :
-                                                        fencer.points === 4 ? "bg-cyan-600" :
+                                                        fencer.points === 4 ? "bg-teal-400" :
                                                             fencer.points === 5 ? "bg-blue-400" :
                                                                 fencer.points === 6 ? "bg-indigo-600" :
                                                                     fencer.points === 7 ? "bg-violet-600" : "bg-amber-300")}>
