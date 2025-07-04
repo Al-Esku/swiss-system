@@ -1144,7 +1144,7 @@ function Event(props: eventProps) {
                         }
                     })}
                 </div> : ""}
-                {!started && <Dialog.Root>
+                {!started && !props.client && <Dialog.Root>
                     <Dialog.Trigger disabled={started}>
                         <a className={"border rounded px-2 mt-2 ml-2 print:hidden"}>
                             Pistes
@@ -1159,7 +1159,31 @@ function Event(props: eventProps) {
                             <div className={"ml-4 mt-4"}>
                                 {props.competition.events[props.eventIndex].pistes.map((piste, index) => {
                                     return (
-                                        <div key={index}>{piste}</div>
+                                        <div key={index} className={"flex justify-between"}>
+                                            <div>{piste}</div>
+                                            {props.competition.events[props.eventIndex].roundNum === 0 && <a className={"hover:cursor-pointer"} onClick={() => {
+                                                props.setCompetition(current => ({
+                                                    name: current?.name ?? "",
+                                                    events: current?.events.map((event, index) => {
+                                                        if (index !== props.eventIndex) {
+                                                            return event
+                                                        } else {
+                                                            return {...event, pistes: event.pistes.filter((eventPiste) => {
+                                                                return eventPiste !== piste
+                                                            })}
+                                                        }
+                                                    }) ?? []
+                                                }))
+                                            }}>
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                     viewBox="0 0 24 24"
+                                                     strokeWidth={1.5} stroke={"red"}
+                                                     className="w-6 h-6">
+                                                    <path strokeLinecap="round" strokeLinejoin="round"
+                                                          d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                            </a>}
+                                        </div>
                                     )
                                 })}
                                 <form onSubmit={event => {
