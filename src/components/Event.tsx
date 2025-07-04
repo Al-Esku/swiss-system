@@ -528,7 +528,7 @@ function Event(props: eventProps) {
 
     return (
         <div className={"grid lg:grid-cols-2"}>
-            <div className={"m-8"}>
+            <div className={"lg:m-8"}>
                 {!props.client && <Dialog.Root>
                     <Dialog.Trigger disabled={started}>
                         <a className={"border rounded px-2 print:hidden " + (started && "opacity-70")}>Add fencers</a>
@@ -778,44 +778,43 @@ function Event(props: eventProps) {
                             </tr>
                             </thead>
                             {props.competition.events[props.eventIndex].table.map(((fencer, index) => (
-                                <tbody className={"border border-black border-solid m-0 bg-gray-500 p-0"} key={index}>
+                                <tbody className={getColour(fencer) + " border border-black border-solid m-0 p-0"} key={index}>
                                 <tr className={"m-0"}>
-                                    <td className={"border-black border-r p-0"}
+                                    <td className={" border-black border-r p-0 h-full"}
                                         onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
-                                        <div className={getColour(fencer) + " flex justify-center"}>{fencer.rank}.</div>
+                                        <div className={" flex justify-center h-full"}>{fencer.rank}.</div>
                                     </td>
                                     <td className={" p-0"}
                                         onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
                                         <div
-                                            className={getColour(fencer) + " pl-2 w-full"}>{fencer.firstName} {fencer.lastName}</div>
+                                            className={" pl-2 w-full overflow-hidden text-ellipsis"}>{fencer.firstName} {fencer.lastName}</div>
                                     </td>
                                     <td className={"font-semibold text-center border-black border-l p-0"}
                                         onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
-                                        <div className={getColour(fencer)}>{fencer.points}</div>
+                                        <div>{fencer.points}</div>
                                     </td>
                                     <td className={"text-center border-black border-l p-0"}
                                         onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
-                                        <div className={getColour(fencer)}>{fencer.hitsScored}</div>
+                                        <div>{fencer.hitsScored}</div>
                                     </td>
                                     <td className={"text-center border-black border-l p-0"}
                                         onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
-                                        <div className={getColour(fencer)}>{fencer.hitsRecieved}</div>
+                                        <div>{fencer.hitsRecieved}</div>
                                     </td>
                                     <td className={"text-center border-black border-l p-0"}
                                         onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
-                                        <div
-                                            className={getColour(fencer)}>{fencer.hitsScored - fencer.hitsRecieved}</div>
+                                        <div>{fencer.hitsScored - fencer.hitsRecieved}</div>
                                     </td>
                                     <td className={"text-center border-black border-l p-0"}
                                         onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
-                                        <div className={getColour(fencer)}>{fencer.strengthOfSchedule}</div>
+                                        <div>{fencer.strengthOfSchedule}</div>
                                     </td>
                                     <td className={"text-center border-black border-l p-0"}
                                         onClick={() => setIndexOpen(index !== indexOpen ? index : -1)}>
-                                        <div className={getColour(fencer)}>{fencer.strengthOfVictory}</div>
+                                        <div>{fencer.strengthOfVictory}</div>
                                     </td>
                                     {!props.client && <td className={"items-center border-black border-l p-0 print:hidden print:border-0"}>
-                                        <div className={getColour(fencer) + " w-6 h-6"}>
+                                        <div className={"w-6 h-6"}>
                                             {!fencer.removed &&
                                                 <Dialog.Root onOpenChange={open => {
                                                     if (open) {
@@ -983,7 +982,7 @@ function Event(props: eventProps) {
                                         </div>
                                     </td>}
                                     {!props.client && <td className={"items-center border-black border-l p-0 print:hidden print:border-0"}>
-                                        <div className={getColour(fencer) + " w-6 h-6"}>
+                                        <div className={"w-6 h-6"}>
                                             {!fencer.removed &&
                                                 <Dialog.Root>
                                                     <Dialog.Trigger disabled={started}>
@@ -1049,12 +1048,12 @@ function Event(props: eventProps) {
                                 </tbody>
                             )))}
                         </table>
-                        <p className={"my-2 italic w-1/3 text-xs"}>First Tiebreaker: Indicator, your hits
+                        <p className={"my-2 italic w-full max-lg:mx-2 lg:w-1/3 text-xs"}>First Tiebreaker: Indicator, your hits
                             scored minus hits recieved</p>
-                        <p className={"my-2 italic w-1/3 text-xs"}>Second Tiebreaker: Strength of Schedule, the
+                        <p className={"my-2 italic w-full max-lg:mx-2 lg:w-1/3 text-xs"}>Second Tiebreaker: Strength of Schedule, the
                             sum of
                             points scored by your opponents</p>
-                        <p className={"my-2 italic w-1/3 text-xs"}>Third Tiebreaker: Strength of Victory, the
+                        <p className={"my-2 italic w-full max-lg:mx-2 lg:w-1/3 text-xs"}>Third Tiebreaker: Strength of Victory, the
                             sum of
                             points scored by people you beat</p>
                         {!props.client && <div className={"flex"}>
@@ -1127,7 +1126,7 @@ function Event(props: eventProps) {
                         </Dialog.Root>}
                     </div> : ""}
             </div>
-            <div className={"max-lg:ml-8 " + (props.printTarget === "bouts" ? "print-visible" : "print:hidden")}>
+            <div className={"max-lg:ml-2 " + (props.printTarget === "bouts" ? "print-visible" : "print:hidden")}>
                 {props.competition.events[props.eventIndex].roundNum > 0 ? <div className={"mt-8 flex"}>
                     {props.competition.events[props.eventIndex].rounds.map((round, index) => {
                         if (round.bouts.length > 0) {
@@ -1137,25 +1136,25 @@ function Event(props: eventProps) {
                 </div> : ""}
                 <form id={"roundForm"} onSubmit={endRound} className={"m-2 "}>
                     {props.competition.events[props.eventIndex].roundNum > 0 && props.competition.events[props.eventIndex].rounds[activeRound] && props.competition.events[props.eventIndex].rounds[activeRound].bouts.map((bout, index) => (
-                        <div className={"p-4 print:w-full"} key={index}>
-                            <div className={"inline-block w-1/3 mr-4 print:w-2/5"}>
+                        <div className={"lg:p-4 print:w-full my-2"} key={index}>
+                            <div className={"inline-block w-1/3 sm:w-2/5 lg:w-1/3 lg:mr-4 print:w-2/5"}>
                                 <input className={"peer hidden"} type='radio' value={bout.fencer1.id}
                                        id={bout.fencer1.id.toString()} name={bout.id.toString()} required
                                        onClick={() => updateBout(bout.id, bout.fencer1.id)} defaultChecked={bout.winner === bout.fencer1.id} disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}></input>
                                 <label htmlFor={bout.fencer1.id.toString()}
-                                       className={"p-8 flex w-full rounded border-2 " + (bout.winner !== bout.fencer1.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : bout.winner === bout.fencer1.id ? "border-green-600 border-[3px] font-semibold text-green-800 " : "") + (!props.client && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{bout.fencer1.firstName + " "} {bout.fencer1.lastName}</label>
+                                       className={"p-2 lg:p-8 flex w-full rounded border-2 " + (bout.winner !== bout.fencer1.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : bout.winner === bout.fencer1.id ? "border-green-600 border-[3px] font-semibold text-green-800 " : "") + (!props.client && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{bout.fencer1.firstName + " "} {bout.fencer1.lastName}</label>
                             </div>
                             <input type={"number"} className={"w-8 p-1 justify-items-center border-2 border-black rounded " + (bout.winner !== -1 ? bout.winner === bout.fencer1.id ? "text-green-800 border-green-600 border-[3px]" : "text-red-700 border-red-600" : "")}
                                    min={0} id={bout.fencer1.id.toString() + "_score"} style={{marginRight: '4px'}} required value={bout.score1 ?? ""} onInput={(event) => updateBoutScore(bout.id, event.currentTarget.valueAsNumber, undefined)} disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}/>
                             vs
                             <input type={"number"} className={"w-8 p-1 justify-items-center border-2 border-black rounded ml-8 " + (bout.winner !== -1 ? bout.winner === bout.fencer2.id ? "text-green-800 border-green-600 border-[3px]" : "text-red-700 border-red-600" : "")}
                                    min={0} id={bout.fencer2.id.toString() + "_score"} style={{marginLeft: '4px'}} required value={bout.score2 ?? ""} onInput={(event) => updateBoutScore(bout.id, undefined, event.currentTarget.valueAsNumber)} disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}/>
-                            <div className={"inline-block w-1/3 ml-4 print:w-2/5"}>
+                            <div className={"inline-block w-1/3 sm:w-2/5 lg:w-1/3 lg:ml-4 print:w-2/5"}>
                                 <input className={"peer hidden"} type='radio' value={bout.fencer2.id}
                                        id={bout.fencer2.id.toString()} name={bout.id.toString()}
                                        onClick={() => updateBout(bout.id, bout.fencer2.id)} defaultChecked={bout.winner === bout.fencer2.id} disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}></input>
                                 <label htmlFor={bout.fencer2.id.toString()}
-                                       className={"p-8 flex w-full rounded border-2 " + (bout.winner !== bout.fencer2.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : bout.winner === bout.fencer2.id ? "border-green-600 border-[3px] font-semibold text-green-800 " : "") + (!props.client && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{" " + bout.fencer2.firstName} {bout.fencer2.lastName}</label>
+                                       className={"p-2 lg:p-8 flex w-full rounded border-2 " + (bout.winner !== bout.fencer2.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : bout.winner === bout.fencer2.id ? "border-green-600 border-[3px] font-semibold text-green-800 " : "") + (!props.client && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{" " + bout.fencer2.firstName} {bout.fencer2.lastName}</label>
                             </div>
                         </div>
                     ))}
