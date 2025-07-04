@@ -166,7 +166,7 @@ function Competition(props: compProps) {
                             value={`${process.env.NEXT_PUBLIC_HOME_URL}/competitions/${uuid.current}`} width={400} height={400} className={"w-full flex justify-center"}/>
                     </div>
                 }
-                <div className={"flex w-full overflow-x-scroll mt-4"}>
+                <div className={"flex w-full overflow-x-scroll mt-4 print:hidden"}>
                     {competition?.events.map(((event, index) => {
                         return <button key={index}
                                        className={"border px-2 pb-1 print:hidden min-w-fit " + (index === activeEvent ? "bg-gray-300 border-gray-300" : "")}
@@ -202,7 +202,7 @@ function Competition(props: compProps) {
                         </Dialog.Portal>
                     </Dialog.Root>}
                 </div>
-                <div className={"w-full border-t"}>
+                <div className={"w-full border-t print:hidden"}>
                     {competition?.events.map((event, index) => {
                         return <div className={activeEvent !== index ? "hidden" : ""} key={index}>
                             <Event competition={competition} setCompetition={setCompetition} eventIndex={index} client={props.client} printTarget={printTarget} setPrintTarget={setPrintTarget} print={print}></Event>
