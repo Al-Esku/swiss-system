@@ -1224,7 +1224,7 @@ function Event(props: eventProps) {
                                 {props.competition.events[props.eventIndex].rounds[activeRound].bouts.map((bout, boutIndex) => {
                                     if (bout.piste === piste) {
                                         return (
-                                            <div className={"lg:p-4 print:w-full my-2 flex justify-center"} key={boutIndex}>
+                                            <div className={"lg:p-2 print:w-full max-lg:my-1 flex justify-center"} key={boutIndex}>
                                                 <div
                                                     className={"inline-block w-1/3 md:w-2/5"}>
                                                     <input className={"peer hidden"} type='radio'
@@ -1235,7 +1235,7 @@ function Event(props: eventProps) {
                                                            defaultChecked={bout.winner === bout.fencer1.id}
                                                            disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}></input>
                                                     <label htmlFor={bout.fencer1.id.toString()}
-                                                           className={"p-2 lg:p-8 flex w-full rounded border-2 " + (bout.winner !== bout.fencer1.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : bout.winner === bout.fencer1.id ? "border-green-600 border-[3px] font-semibold text-green-800 " : "") + (!props.client && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{bout.fencer1.firstName + " "} {bout.fencer1.lastName}</label>
+                                                           className={"p-2 flex w-full rounded border-2 " + (bout.winner !== bout.fencer1.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : bout.winner === bout.fencer1.id ? "border-green-600 border-[3px] font-semibold text-green-800 " : "") + (!props.client && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{bout.fencer1.firstName + " "} {bout.fencer1.lastName}</label>
                                                 </div>
                                                 <div className={"w-1/3 md:w-1/5 flex justify-center"}>
                                                     <div className={"flex items-center"}>
@@ -1265,7 +1265,7 @@ function Event(props: eventProps) {
                                                            defaultChecked={bout.winner === bout.fencer2.id}
                                                            disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}></input>
                                                     <label htmlFor={bout.fencer2.id.toString()}
-                                                           className={"p-2 lg:p-8 flex w-full rounded border-2 " + (bout.winner !== bout.fencer2.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : bout.winner === bout.fencer2.id ? "border-green-600 border-[3px] font-semibold text-green-800 " : "") + (!props.client && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{" " + bout.fencer2.firstName} {bout.fencer2.lastName}</label>
+                                                           className={"p-2 flex w-full rounded border-2 " + (bout.winner !== bout.fencer2.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : bout.winner === bout.fencer2.id ? "border-green-600 border-[3px] font-semibold text-green-800 " : "") + (!props.client && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{" " + bout.fencer2.firstName} {bout.fencer2.lastName}</label>
                                                 </div>
                                             </div>
                                         )
@@ -1274,7 +1274,7 @@ function Event(props: eventProps) {
                             </div>
                         )
                     }) : props.competition.events[props.eventIndex].rounds[activeRound].bouts.map((bout, index) => (
-                        <div className={"lg:p-4 print:w-full my-2 flex justify-center"} key={index}>
+                        <div className={"lg:p-2 print:w-full max-lg:my-1 flex justify-center"} key={index}>
                             <div
                                 className={"inline-block w-1/3 md:w-2/5"}>
                                 <input className={"peer hidden"} type='radio'
@@ -1285,7 +1285,7 @@ function Event(props: eventProps) {
                                        defaultChecked={bout.winner === bout.fencer1.id}
                                        disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}></input>
                                 <label htmlFor={bout.fencer1.id.toString()}
-                                       className={"p-2 lg:p-8 flex w-full rounded border-2 " + (bout.winner !== bout.fencer1.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : bout.winner === bout.fencer1.id ? "border-green-600 border-[3px] font-semibold text-green-800 " : "") + (!props.client && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{bout.fencer1.firstName + " "} {bout.fencer1.lastName}</label>
+                                       className={"p-2 flex w-full rounded border-2 " + (bout.winner !== bout.fencer1.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : bout.winner === bout.fencer1.id ? "border-green-600 border-[3px] font-semibold text-green-800 " : "") + (!props.client && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{bout.fencer1.firstName + " "} {bout.fencer1.lastName}</label>
                             </div>
                             <div className={"w-1/3 md:w-1/5 flex justify-center"}>
                                 <div className={"flex items-center"}>
@@ -1315,7 +1315,7 @@ function Event(props: eventProps) {
                                        defaultChecked={bout.winner === bout.fencer2.id}
                                        disabled={props.client || activeRound !== props.competition.events[props.eventIndex].rounds.length - 1}></input>
                                 <label htmlFor={bout.fencer2.id.toString()}
-                                       className={"p-2 lg:p-8 flex w-full rounded border-2 " + (bout.winner !== bout.fencer2.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : bout.winner === bout.fencer2.id ? "border-green-600 border-[3px] font-semibold text-green-800 " : "") + (!props.client && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{" " + bout.fencer2.firstName} {bout.fencer2.lastName}</label>
+                                       className={"p-2 flex w-full rounded border-2 " + (bout.winner !== bout.fencer2.id && bout.winner !== -1 ? "text-red-700 border-red-600 " : bout.winner === bout.fencer2.id ? "border-green-600 border-[3px] font-semibold text-green-800 " : "") + (!props.client && activeRound === props.competition.events[props.eventIndex].rounds.length - 1 ? "hover:cursor-pointer" : "")}>{" " + bout.fencer2.firstName} {bout.fencer2.lastName}</label>
                             </div>
                         </div>
                     )))}
