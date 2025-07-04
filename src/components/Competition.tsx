@@ -4,6 +4,7 @@ import Event from "./Event";
 import * as Dialog from "@radix-ui/react-dialog";
 import { v4 as uuidv4 } from "uuid";
 import {useParams} from "react-router-dom";
+import {QRCodeSVG} from "qrcode.react";
 
 type compProps = {
     client: boolean
@@ -11,6 +12,7 @@ type compProps = {
 
 function Competition(props: compProps) {
     const [competition, setCompetition] = React.useState<competition|null>(null)
+    const [printTarget, setPrintTarget] = React.useState<string|null>(null)
     const [activeEvent, setActiveEvent] = React.useState(0)
     const [addEventDialogOpen, setAddEventDialogOpen] = React.useState(false)
     const uuid = React.useRef(useParams().uuid)
@@ -81,6 +83,14 @@ function Competition(props: compProps) {
         }
     }
 
+    const print = (id: string) => {
+        setPrintTarget(id)
+        setTimeout(() => {
+            window.print()
+            setPrintTarget(null)
+        }, 100)
+    }
+
     return (
         <div>
             {competition === null && <div>
@@ -126,21 +136,52 @@ function Competition(props: compProps) {
             </div>}
             {competition !== null && <div>
                 <div className={"flex w-full justify-center mt-4 print:hidden"}>
-                    <p className={"font-bold text-4xl"}>{competition.name}</p>
+                    <div>
+                        <p className={"font-bold text-4xl flex justify-center"}>{competition.name}</p>
+                        {!props.client && <Dialog.Root>
+                            <Dialog.Trigger>
+                                <a className={"border rounded px-2 pb-1 print:hidden flex justify-center mt-2"}>Show QR Code</a>
+                            </Dialog.Trigger>
+                            <Dialog.Portal>
+                                <Dialog.Overlay
+                                    className={"bg-gray-600 opacity-80 fixed inset-0 z-30 print:hidden"}/>
+                                <Dialog.Content
+                                    className={"fixed top-[50%] left-[50%] z-40 max-h-[100vh] max-w-5xl translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none print:hidden"}>
+                                    <Dialog.Title className={"font-bold text-xl flex justify-center mb-2"}>Live
+                                        Results</Dialog.Title>
+                                    <QRCodeSVG
+                                        value={`${process.env.NEXT_PUBLIC_HOME_URL}/competitions/${uuid.current}`} height={200} width={200}/>
+                                    <a type={"button"} onClick={() => print("qrcode")} className={"border rounded pb-1 print:hidden flex justify-center mt-4"}>Print QR Code</a>
+                                </Dialog.Content>
+                            </Dialog.Portal>
+                        </Dialog.Root>}
+                    </div>
                 </div>
+                {!props.client &&
+                    <div className={"hidden " + (printTarget === "qrcode" ? "print-visible" : "print:hidden")}>
+                        <div className={"text-4xl flex justify-center font-bold mt-8 mb-16"}>
+                            Live Results
+                        </div>
+                        <QRCodeSVG
+                            value={`${process.env.NEXT_PUBLIC_HOME_URL}/competitions/${uuid.current}`} width={400} height={400} className={"w-full flex justify-center"}/>
+                    </div>
+                }
                 <div className={"flex w-full overflow-x-scroll mt-4"}>
                     {competition?.events.map(((event, index) => {
-                        return <button key={index} className={"border px-2 pb-1 print:hidden min-w-fit " + (index === activeEvent ? "bg-gray-300 border-gray-300" : "")} onClick={() => setActiveEvent(index)}>{event.name}</button>
+                        return <button key={index}
+                                       className={"border px-2 pb-1 print:hidden min-w-fit " + (index === activeEvent ? "bg-gray-300 border-gray-300" : "")}
+                                       onClick={() => setActiveEvent(index)}>{event.name}</button>
                     }))}
-                    {!props.client && <Dialog.Root open={addEventDialogOpen} onOpenChange={open => setAddEventDialogOpen(open)}>
-                        <Dialog.Trigger>
-                            <a className={"border rounded-tr px-2 pb-1 print:hidden"}>+</a>
-                        </Dialog.Trigger>
-                        <Dialog.Portal>
-                            <Dialog.Overlay
-                                className={"bg-gray-600 opacity-80 fixed inset-0 z-30"}/>
-                            <Dialog.Content
-                                className={"fixed top-[50%] left-[50%] z-40 max-h-[100vh] max-w-5xl translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none"}>
+                    {!props.client &&
+                        <Dialog.Root open={addEventDialogOpen} onOpenChange={open => setAddEventDialogOpen(open)}>
+                            <Dialog.Trigger>
+                                <a className={"border rounded-tr px-2 pb-1 print:hidden"}>+</a>
+                            </Dialog.Trigger>
+                            <Dialog.Portal>
+                                <Dialog.Overlay
+                                    className={"bg-gray-600 opacity-80 fixed inset-0 z-30"}/>
+                                <Dialog.Content
+                                    className={"fixed top-[50%] left-[50%] z-40 max-h-[100vh] max-w-5xl translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none"}>
                                 <Dialog.Title className={"font-bold text-xl"}>Add Event</Dialog.Title>
                                 <form className={"m-2"} onSubmit={(event) => addEvent(event)}>
                                     <label htmlFor={"eventName"}>Name</label>
@@ -164,7 +205,7 @@ function Competition(props: compProps) {
                 <div className={"w-full border-t"}>
                     {competition?.events.map((event, index) => {
                         return <div className={activeEvent !== index ? "hidden" : ""} key={index}>
-                            <Event competition={competition} setCompetition={setCompetition} eventIndex={index} client={props.client}></Event>
+                            <Event competition={competition} setCompetition={setCompetition} eventIndex={index} client={props.client} printTarget={printTarget} setPrintTarget={setPrintTarget} print={print}></Event>
                         </div>
                     })}
                 </div>
