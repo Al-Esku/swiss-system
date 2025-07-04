@@ -202,7 +202,7 @@ function Competition(props: compProps) {
                         </Dialog.Portal>
                     </Dialog.Root>}
                 </div>
-                <div className={"w-full border-t print:hidden"}>
+                <div className={"w-full border-t print:border-0"}>
                     {competition?.events.map((event, index) => {
                         return <div className={activeEvent !== index ? "hidden" : ""} key={index}>
                             <Event competition={competition} setCompetition={setCompetition} eventIndex={index} client={props.client} printTarget={printTarget} setPrintTarget={setPrintTarget} print={print}></Event>
