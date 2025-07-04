@@ -474,10 +474,13 @@ function Event(props: eventProps) {
     const getColour = (fencer: fencer) => {
         return (fencer.removed ? "opacity-60 " : "") +
             (fencer.points === 0 ? "bg-red-400" :
-                fencer.points === 1 ? "bg-yellow-200" :
-                    fencer.points === 2 ? "bg-green-300" :
-                        fencer.points === 3 ? "bg-blue-400" :
-                            fencer.points === 4 ? "bg-purple-400" : "bg-amber-300")
+                fencer.points === 1 ? "bg-orange-300" :
+                    fencer.points === 2 ? "bg-yellow-200" :
+                        fencer.points === 3 ? "bg-green-300" :
+                            fencer.points === 4 ? "bg-cyan-600" :
+                                fencer.points === 5 ? "bg-blue-400" :
+                                    fencer.points === 6 ? "bg-indigo-600" :
+                                        fencer.points === 7 ? "bg-violet-600" : "bg-amber-300")
     }
 
     const addFencersFromCSV = () => {
@@ -1041,10 +1044,13 @@ function Event(props: eventProps) {
                                 {index === indexOpen && fencer.results.length > 0 &&
                                     <tr className={(fencer.removed ? "opacity-60 " : "") +
                                         (fencer.points === 0 ? "bg-red-400" :
-                                            fencer.points === 1 ? "bg-yellow-200" :
-                                                fencer.points === 2 ? "bg-green-300" :
-                                                    fencer.points === 3 ? "bg-blue-400" :
-                                                        fencer.points === 4 ? "bg-purple-400" : "bg-amber-300")}>
+                                            fencer.points === 1 ? "bg-orange-300" :
+                                                fencer.points === 2 ? "bg-yellow-200" :
+                                                    fencer.points === 3 ? "bg-green-300" :
+                                                        fencer.points === 4 ? "bg-cyan-600" :
+                                                            fencer.points === 5 ? "bg-blue-400" :
+                                                                fencer.points === 6 ? "bg-indigo-600" :
+                                                                    fencer.points === 7 ? "bg-violet-600" : "bg-amber-300")}>
                                         <td className={"pl-2 border-black border-t"}
                                             colSpan={10}>{fencer.results.map((result, index) => {
                                             return <div key={index}>{result.opponent !== -1 ? `vs ${
